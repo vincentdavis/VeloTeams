@@ -55,3 +55,10 @@ You must set the DSN url in production.
 ## Deployment
 
 The following details how to deploy this application.
+
+## Setting up dev
+
+python manage.py migrate
+python manage.py tailwind start
+python manage.py runserver
+

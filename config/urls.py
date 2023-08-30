@@ -30,6 +30,7 @@ if settings.DEBUG:
             default_views.bad_request,
             kwargs={"exception": Exception("Bad Request!")},
         ),
+
         path(
             "403/",
             default_views.permission_denied,
@@ -46,3 +47,4 @@ if settings.DEBUG:
         import debug_toolbar
 
         urlpatterns = [path("__debug__/", include(debug_toolbar.urls))] + urlpatterns
+    urlpatterns = [path("__reload__/", include("django_browser_reload.urls"))] + urlpatterns

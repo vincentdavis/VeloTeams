@@ -2,7 +2,7 @@
 Base settings to build other settings files upon.
 """
 from pathlib import Path
-
+import os
 import environ
 
 BASE_DIR = Path(__file__).resolve(strict=True).parent.parent.parent
@@ -10,11 +10,13 @@ BASE_DIR = Path(__file__).resolve(strict=True).parent.parent.parent
 APPS_DIR = BASE_DIR / "veloteams"
 env = environ.Env()
 
-READ_DOT_ENV_FILE = env.bool("DJANGO_READ_DOT_ENV_FILE", default=False)
-if READ_DOT_ENV_FILE:
+if os.getenv("DJANGO_SETTINGS_MODULE") == "config.settings.local":
     # OS environment variables take precedence over variables from .env
-    env.read_env(str(BASE_DIR / ".env"))
-
+    envs_path = Path(f"{BASE_DIR}/.envs")
+    if envs_path.is_dir():
+        env.read_env(BASE_DIR / ".envs" / ".local" / ".django")
+    else:
+        env.read_env(BASE_DIR / ".env")
 # GENERAL
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#debug
@@ -77,7 +79,9 @@ DJANGO_APPS = [
     "django.forms",
 ]
 THIRD_PARTY_APPS = [
+    "tailwind",
     "crispy_forms",
+    "django_htmx",
     "crispy_bootstrap5",
     "allauth",
     "allauth.account",
@@ -86,10 +90,14 @@ THIRD_PARTY_APPS = [
 
 LOCAL_APPS = [
     "veloteams.users",
+    "theme"
     # Your stuff: custom apps go here
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
+
+# Tailwind Settings
+TAILWIND_APP_NAME = 'theme'
 
 # MIGRATIONS
 # ------------------------------------------------------------------------------
@@ -143,6 +151,8 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
+# django-htmx
+MIDDLEWARE += ["django_htmx.middleware.HtmxMiddleware",]
 # STATIC
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#static-root

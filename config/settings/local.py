@@ -54,5 +54,8 @@ INTERNAL_IPS = ["127.0.0.1", "10.0.2.2"]
 # https://django-extensions.readthedocs.io/en/latest/installation_instructions.html#configuration
 INSTALLED_APPS += ["django_extensions"]  # noqa: F405
 
-# Your stuff...
+# django_browser_reload
 # ------------------------------------------------------------------------------
+# https://github.com/adamchainz/django-browser-reload
+INSTALLED_APPS += ["django_browser_reload"]  # noqa: F405
+MIDDLEWARE += ["django_browser_reload.middleware.BrowserReloadMiddleware",]  # noqa: F405
