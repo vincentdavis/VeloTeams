@@ -28,7 +28,6 @@ jobs:
         echo "DJANGO_DEFAULT_FROM_EMAIL=${{ secrets.DJANGO_DEFAULT_FROM_EMAIL }}" >> .django
         echo "ADMINS=${{ secrets.ADMINS }}" >> .django
         echo "DJANGO_ACCOUNT_ALLOW_REGISTRATION=${{ secrets.DJANGO_ACCOUNT_ALLOW_REGISTRATION }}" >> .django
-        echo "DJANGO_ACCOUNT_ALLOW_REGISTRATION=${{ secrets.DJANGO_ACCOUNT_ALLOW_REGISTRATION }}" >> .django
         echo "REDIS_URL=${{ secrets.REDIS_URL }}" >> .django
         echo "MAILGUN_API_KEY=${{ secrets.MAILGUN_API_KEY }}" >> .django
         echo "MAILGUN_DOMAIN=${{ secrets.MAILGUN_DOMAIN }}" >> .django
@@ -64,7 +63,7 @@ jobs:
           rm -rf /home/VeloTeams  # Caution: This removes the existing directory
           git clone https://github.com/karthicksakkaravarti/VeloTeams.git /home/VeloTeams
           cd /home/VeloTeams
-          cp -rf ../../.envs .
+          cp -rf ../.envs .
           docker-compose -f production.yml build
           docker-compose -f production.yml up -d
         ENDSSH
