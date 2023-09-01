@@ -19,7 +19,7 @@ certificatesResolvers:
   letsencrypt:
     # https://docs.traefik.io/master/https/acme/#lets-encrypt
     acme:
-      email: 'developer@bicyclecolororado.org'
+      email: 'karthicksakkaravarthi@gmail.com
       storage: /etc/traefik/acme/acme.json
       # https://docs.traefik.io/master/https/acme/#httpchallenge
       httpChallenge:
@@ -28,7 +28,7 @@ certificatesResolvers:
 http:
   routers:
     web-secure-router:
-      rule: 'Host(`events.bicyclecolorado.org`)'
+      rule: 'Host(`veloteams.app`)'
       entryPoints:
         - web-secure
       middlewares:
@@ -39,7 +39,7 @@ http:
         certResolver: letsencrypt
 
     web-media-router:
-      rule: '(Host(`events.bicyclecolorado.org`)) && PathPrefix(`/media/`)'
+      rule: '(Host(`veloteams.app`)) && PathPrefix(`/media/`)'
       entryPoints:
         - web-secure
       middlewares:
