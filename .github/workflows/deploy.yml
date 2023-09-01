@@ -15,7 +15,8 @@ jobs:
 
     - name: Create .env file
       run: |
-        echo "DJANGO_SECRET_KEY=${{ secrets.DJANGO_SECRET_KEY }}" > .django
+        echo "DJANGO_SETTINGS_MODULE=config.settings.production" >> .django
+        echo "DJANGO_SECRET_KEY=${{ secrets.DJANGO_SECRET_KEY }}" >> .django
         echo "DJANGO_ADMIN_URL=${{ secrets.DJANGO_ADMIN_URL }}" >> .django
         echo "DJANGO_ALLOWED_HOSTS=${{ secrets.DJANGO_ALLOWED_HOSTS }}" >> .django
         echo "DJANGO_SECURE_SSL_REDIRECT=${{ secrets.DJANGO_SECURE_SSL_REDIRECT }}" >> .django
@@ -31,7 +32,6 @@ jobs:
         echo "MAILGUN_DOMAIN=${{ secrets.MAILGUN_DOMAIN }}" >> .django
         echo "SENTRY_DSN=${{ secrets.SENTRY_DSN }}" >> .django
         echo "WEB_CONCURRENCY=4" >> .django
-        echo "DJANGO_SETTINGS_MODULE=config.settings.production" > .django
 
         echo "POSTGRES_HOST=${{ secrets.POSTGRES_HOST }}" >> .postgres
         echo "POSTGRES_PORT=${{ secrets.POSTGRES_PORT }}" >> .postgres
