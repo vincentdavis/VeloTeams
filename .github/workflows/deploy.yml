@@ -50,10 +50,10 @@ jobs:
         chmod 600 deploy_key
 
         # Copying Environment
-        scp -i deploy_key .django user@${{ secrets.SERVER_HOST }}:/home/.envs/.production/
-        scp -i deploy_key .postgres user@${{ secrets.SERVER_HOST }}:/home/.envs/.postgres/
+        scp -i deploy_key .django root@${{ secrets.SERVER_HOST }}:/home/.envs/.production/
+        scp -i deploy_key .postgres root@${{ secrets.SERVER_HOST }}:/home/.envs/.postgres/
 
-        ssh -i deploy_key user@${{ secrets.SERVER_HOST }} <<'ENDSSH'
+        ssh -i deploy_key root@${{ secrets.SERVER_HOST }} <<'ENDSSH'
           rm -rf /home/VeloTeams  # Caution: This removes the existing directory
           git clone https://github.com/karthicksakkaravarti/VeloTeams.git /home/VeloTeams
           cd /home/VeloTeams
