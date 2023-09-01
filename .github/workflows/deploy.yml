@@ -41,8 +41,9 @@ jobs:
         echo "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" >> .postgres
         echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> .postgres
 
-
-
+    - name: Add SSH known hosts
+      run: |
+        ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
 
     - name: Deploy to server
       run: |
