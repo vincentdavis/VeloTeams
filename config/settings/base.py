@@ -1,8 +1,9 @@
 """
 Base settings to build other settings files upon.
 """
-from pathlib import Path
 import os
+from pathlib import Path
+
 import environ
 
 BASE_DIR = Path(__file__).resolve(strict=True).parent.parent.parent
@@ -87,18 +88,21 @@ THIRD_PARTY_APPS = [
     "allauth",
     "allauth.account",
     "allauth.socialaccount",
+    "simple_history",
 ]
 
 LOCAL_APPS = [
     "veloteams.users",
-    "theme"
-    # Your stuff: custom apps go here
+    "theme",
+    "apps.zp",
+    "apps.zw",
+    "apps.teams",
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
 # Tailwind Settings
-TAILWIND_APP_NAME = 'theme'
+TAILWIND_APP_NAME = "theme"
 
 # MIGRATIONS
 # ------------------------------------------------------------------------------
@@ -150,10 +154,13 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "simple_history.middleware.HistoryRequestMiddleware",
 ]
 
 # django-htmx
-MIDDLEWARE += ["django_htmx.middleware.HtmxMiddleware",]
+MIDDLEWARE += [
+    "django_htmx.middleware.HtmxMiddleware",
+]
 # STATIC
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#static-root
