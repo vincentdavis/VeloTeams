@@ -26,7 +26,7 @@ black==23.7.0  # https://github.com/psf/black
 # djlint==1.32.1  # https://github.com/Riverside-Healthcare/djLint
 # pylint-django==2.5.3  # https://github.com/PyCQA/pylint-django
 pre-commit==3.3.3  # https://github.com/pre-commit/pre-commit
-ruff==0.0.286
+ruff==0.0.288
 pur==7.3.0
 
 # Django
