@@ -24,10 +24,21 @@ class Team(models.Model):
 
 
 class TeamMember(models.Model):
-    team = models.ForeignKey(Team, on_delete=models.CASCADE)
-    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
-    zp_id = models.ForeignKey(ZPProfile, on_delete=models.SET_NULL, null=True)  # user ID at zp
-    zw_id = models.ForeignKey(ZWProfile, on_delete=models.SET_NULL, null=True)  # user ID at zw
+    PENDING = "pending"
+    PROCESSING = "processing"
+    ACTIVE = "active"
+    INACTIVE = "inactive"
+    SUSPENDED = "suspended"
+    STATUS_CHOICES = [
+        (PENDING, "Pending"),
+        (PROCESSING, "Processing"),
+        (ACTIVE, "Active"),
+        (INACTIVE, "Inactive"),
+        (SUSPENDED, "Suspended"),
+    ]
+    team = models.ManyToManyField(Team, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, unique=True)
+    status = models.CharField(max_length=255, choices=STATUS_CHOICES, default=PENDING)  # status of the user in the team
     is_owner = models.BooleanField(default=False)  # is team super admin/owner
     is_admin = models.BooleanField(default=False)  # is team admin
     modified_at = models.DateTimeField(auto_now=True)

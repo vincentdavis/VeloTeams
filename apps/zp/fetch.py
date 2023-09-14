@@ -15,7 +15,7 @@ class ZPSession(object):
                 raise e
         else:
             self.login_data = login_data
-        self.zp_url = settings.ZP_URL
+        # self.zp_url = settings.ZP_URL
         self.session = None
         # User Agent required or will be blocked at some apis
         self.user_agent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36"
@@ -75,6 +75,9 @@ class ZPSession(object):
                 profile_profile=f"{self.zp_url}/cache3/profile/{id}_all.json",
                 profile_victims=f"{self.zp_url}/cache3/profile/{id}_rider_compare_victims.json",
                 profile_signups=f"{self.zp_url}/cache3/profile/{id}_signups.json",
+                all_results=f"{self.zp_url}/cache3/lists/0_zwift_event_list_results_3.json",
+                event_results_view=f"{self.zp_url}/cache3/results/{id}_view.json",
+                event_results_zwift=f"{self.zp_url}/cache3/results/{id}_zwift.json",
             )
             data_set = dict()
             for k, v in self.apis.items():
@@ -89,3 +92,19 @@ class ZPSession(object):
                         logging.error(f"Failed to get data from ZP: {e}\n {raw.text}")
                         data_set[k] = None
             return data_set
+
+
+def flatten_row(row: dict) -> dict:
+    update_row = {}
+    for k, v in row.items():
+        try:
+            if isinstance(v, list) and len(v) == 2:
+                update_row[f"{k}"] = v[0]
+                update_row[f"{k}_1"] = v[1]
+        except:
+            print(k, v)
+    return update_row
+
+
+for row in COALITION_who_raced:
+    row.update(flatten_row(row))
