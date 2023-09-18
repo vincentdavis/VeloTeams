@@ -3,8 +3,8 @@ from django.db.models import CharField, ForeignKey, SET_NULL
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 
-from zp.models import Profile as ZPProfile
-from zw.models import Profile as ZWProfile
+from apps.zp.models import Profile as ZPProfile
+from apps.zw.models import Profile as ZWProfile
 
 
 class User(AbstractUser):

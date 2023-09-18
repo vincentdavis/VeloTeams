@@ -1,12 +1,12 @@
 from django.contrib.auth import get_user_model
 from django.db import models
 
-from zp.models import Profile as ZPProfile
-from zp.models import TeamPending
-from zp.models import TeamResults
-from zp.models import TeamRiders
-from zw.models import Club
-from zw.models import Profile as ZWProfile
+from apps.zp.models import Profile as ZPProfile
+from apps.zp.models import TeamPending
+from apps.zp.models import TeamResults
+from apps.zp.models import TeamRiders
+from apps.zw.models import Club
+from apps.zw.models import Profile as ZWProfile
 
 User = get_user_model()
 
@@ -36,7 +36,7 @@ class TeamMember(models.Model):
         (INACTIVE, "Inactive"),
         (SUSPENDED, "Suspended"),
     ]
-    team = models.ManyToManyField(Team, on_delete=models.CASCADE)
+    team = models.ManyToManyField(Team)
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, unique=True)
     status = models.CharField(max_length=255, choices=STATUS_CHOICES, default=PENDING)  # status of the user in the team
     is_owner = models.BooleanField(default=False)  # is team super admin/owner
