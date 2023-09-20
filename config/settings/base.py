@@ -91,14 +91,16 @@ THIRD_PARTY_APPS = [
 
 LOCAL_APPS = [
     "veloteams.users",
-    "theme"
-    # Your stuff: custom apps go here
+    "theme",
+    "apps.zp",
+    "apps.zw",
+    "apps.teams",
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
 # Tailwind Settings
-TAILWIND_APP_NAME = 'theme'
+TAILWIND_APP_NAME = "theme"
 
 # MIGRATIONS
 # ------------------------------------------------------------------------------
@@ -150,6 +152,14 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "simple_history.middleware.HistoryRequestMiddleware",
+]
+
+# Custom middleware
+MIDDLEWARE += [
+    "simple_history.middleware.HistoryRequestMiddleware",
+    "django_htmx.middleware.HtmxMiddleware",
+    "allauth.account.middleware.AccountMiddleware",
 ]
 
 # django-htmx
