@@ -329,3 +329,5 @@ veloteams/media/
 
 .pytest_cache/
 .envs
+apps/zp/data
+apps/zp/notebooks
