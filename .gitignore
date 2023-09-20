@@ -331,3 +331,4 @@ veloteams/media/
 .envs
 apps/zp/data
 apps/zp/notebooks
+.idea
