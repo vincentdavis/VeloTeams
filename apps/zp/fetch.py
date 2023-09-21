@@ -104,7 +104,3 @@ def flatten_row(row: dict) -> dict:
         except:
             print(k, v)
     return update_row
-
-
-for row in COALITION_who_raced:
-    row.update(flatten_row(row))
