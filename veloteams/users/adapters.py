@@ -21,6 +21,12 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
     def is_open_for_signup(self, request: HttpRequest, sociallogin: SocialLogin) -> bool:
         return getattr(settings, "ACCOUNT_ALLOW_REGISTRATION", True)
 
+    def pre_social_login(self, request, sociallogin):
+        # Logging data passed back by Strava
+        print("Account Data:", sociallogin.account.__dict__)
+        print("Extra Data:", sociallogin.account.extra_data)
+        print("User Data:", sociallogin.user.__dict__)   
+        super().pre_social_login(request, sociallogin)
     def populate_user(self, request: HttpRequest, sociallogin: SocialLogin, data: dict[str, typing.Any]) -> User:
         """
         Populates user information from social provider info.
