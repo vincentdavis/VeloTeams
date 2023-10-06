@@ -1,5 +1,5 @@
 {% extends 'base_landing.html' %}
-
+{% load static %}
 {% block main %}
 <section class="bg-gray-50 dark:bg-gray-900 p-3 sm:p-5">
     <div class="mx-auto max-w-screen-xl px-4 lg:px-12">
@@ -82,7 +82,20 @@
                             {% for team in object_list %}
                             <tr class="border-b dark:border-gray-700">
                                 <th scope="row" class="px-4 py-3 font-medium text-gray-900 whitespace-nowrap dark:text-white">{{team.team_name}}</th>
-                                <td class="px-4 py-3">{{team.zp_id}}</td>
+                                <td class="px-4 py-3">
+                                    {% if team.zp_id %} 
+                                        <!-- Check if zwiftpower number is provided -->
+                                        <!-- Link to zwiftpower profile or site. Adjust the href as needed -->
+                                        <a href="https://zwiftpower.com/team.php?id={{ team.zp_id }}" target="_blank">
+                                            <img src="{% static 'images/zp_logo.png' %}" alt="ZP" width="24"> 
+
+                                        </a>
+                                    {% else %}
+                                        <!-- Display nothing or some placeholder -->
+                                        
+                                    {% endif %}
+                                    
+                                </td>
                                 <td class="px-4 py-3">{{team.riders}}</td>
                                 <td class="px-4 py-3">{{team.results}}</td>
                                 <td class="px-4 py-3">{{team.zw_id}}</td>
