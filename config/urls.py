@@ -16,9 +16,10 @@ urlpatterns = [
     path("", HomePageView.as_view(), name="home"),
     path("about/", TemplateView.as_view(template_name="pages/about.html"), name="about"),
     # Django Admin, use {% url 'admin:index' %}
-    path(settings.ADMIN_URL, admin.site.urls),
+    path(settings.ADMIN_URL, admin.site.urls),  
     # User management
     path("users/", include("veloteams.users.urls", namespace="users")),
+    path("", include("apps.teams.urls")),
     path("accounts/", include("allauth.urls")),
     # Your stuff: custom urls includes go here
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

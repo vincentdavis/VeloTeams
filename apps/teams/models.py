@@ -22,6 +22,8 @@ class Team(models.Model):
     modified_at = models.DateTimeField(auto_now=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    def __str__(self) -> str:
+        return self.team_name  
 
 class TeamMember(models.Model):
     PENDING = "pending"
