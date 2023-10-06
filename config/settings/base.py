@@ -159,9 +159,9 @@ MIDDLEWARE = [
 
 # Custom middleware
 MIDDLEWARE += [
-    "simple_history.middleware.HistoryRequestMiddleware",
+    # "simple_history.middleware.HistoryRequestMiddleware",
     "django_htmx.middleware.HtmxMiddleware",
-    # "allauth.account.middleware.AccountMiddleware",
+    "allauth.account.middleware.AccountMiddleware",
 ]
 
 # STATIC

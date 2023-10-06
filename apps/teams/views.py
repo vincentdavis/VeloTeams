@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from .models import Team, TeamMember
-from django.views.generic import CreateView, UpdateView, ListView, FormView
+from django.views.generic import CreateView, UpdateView, ListView, FormView, TemplateView
 from django.urls import reverse_lazy
 from django import forms
 from django.db.models import Q
@@ -73,3 +73,16 @@ class TeamAdminView(ListView):
     def get_queryset(self):
         team = self.kwargs['team_id']
         return TeamMember.objects.filter(team=team)
+
+class JoinTeamIDView(LoginRequiredMixin, TemplateView):
+    template_name = "team_join.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        team_id = self.kwargs.get('team_id')
+        
+        # Initialize the form with the passed team_id.
+        context['form'] = JoinTeamForm(initial={'team': team_id})
+        
+        return context
