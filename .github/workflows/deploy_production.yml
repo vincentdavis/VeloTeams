@@ -48,7 +48,6 @@ jobs:
         ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
         touch ~/.ssh/temp.txt
 
-
     - name: Deploy to server
       run: |
         echo "${{ secrets.SERVER_SSH_KEY }}" > deploy_key
