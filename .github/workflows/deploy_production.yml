@@ -8,13 +8,13 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    environment: PRODUCTION
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
 
     - name: Create .env file
-      ENVIRONMENT: PRODUCTION
       run: |
         echo "DJANGO_SETTINGS_MODULE=config.settings.production" >> .django
         echo "DJANGO_SECRET_KEY=${{ secrets.DJANGO_SECRET_KEY }}" >> .django
