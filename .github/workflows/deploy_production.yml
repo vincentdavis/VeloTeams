@@ -61,8 +61,8 @@ jobs:
         scp -i deploy_key .postgres root@${{ secrets.SERVER_HOST }}:/home/.envs/.production/
 
         ssh -i deploy_key root@${{ secrets.SERVER_HOST }} <<'ENDSSH'
-#          rm -rf /home/VeloTeams  # Caution: This removes the existing directory
-#          git clone https://github.com/vincentdavis/VeloTeams.git -b PRODUCTION /home/VeloTeams
+          # rm -rf /home/VeloTeams  # Caution: This removes the existing directory
+          # git clone https://github.com/vincentdavis/VeloTeams.git -b PRODUCTION /home/VeloTeams
           cd /home/VeloTeams
           git fetch
           git checkout PRODUCTION
