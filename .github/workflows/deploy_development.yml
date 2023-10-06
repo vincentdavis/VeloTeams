@@ -8,6 +8,7 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    environment: DEVELOPMENT
 
     steps:
     - name: Checkout code
