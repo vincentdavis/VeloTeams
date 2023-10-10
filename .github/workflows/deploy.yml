@@ -60,7 +60,7 @@ jobs:
 
         ssh -i deploy_key root@${{ secrets.SERVER_HOST }} <<'ENDSSH'
           rm -rf /home/VeloTeams  # Caution: This removes the existing directory
-          git clone https://github.com/karthicksakkaravarti/VeloTeams.git /home/VeloTeams
+          git clone https://github.com/karthicksakkaravarti/VeloTeams.git -b KARTHICK /home/VeloTeams
           cd /home/VeloTeams
           cp -rf ../.envs .
           docker-compose -f production.yml build
