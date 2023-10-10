@@ -65,7 +65,6 @@ jobs:
           cp -rf ../.envs .
           docker-compose -f production.yml build
           docker-compose -f production.yml up -d
-          docker-compose -f production.yml run django python manage.py migrate
         ENDSSH
       env:
         SERVER_SSH_KEY: ${{ secrets.SERVER_SSH_KEY }}
