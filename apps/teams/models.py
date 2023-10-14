@@ -1,11 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.db import models
 
-from apps.zp.models import Profile as ZPProfile
-from apps.zp.models import TeamPending
-from apps.zp.models import TeamResults
-from apps.zp.models import TeamRiders
-from apps.zw.models import Club
+from apps.zp.models import TeamPending, TeamResults, TeamRiders
 from apps.zw.models import Profile as ZWProfile
 
 User = get_user_model()
@@ -23,7 +19,8 @@ class Team(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self) -> str:
-        return self.team_name  
+        return self.team_name
+
 
 class TeamMember(models.Model):
     PENDING = "pending"
@@ -39,7 +36,7 @@ class TeamMember(models.Model):
         (SUSPENDED, "Suspended"),
     ]
     team = models.ManyToManyField(Team)
-    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, unique=True)
+    user = models.OneToOneField(User, on_delete=models.SET_NULL, null=True)
     status = models.CharField(max_length=255, choices=STATUS_CHOICES, default=PENDING)  # status of the user in the team
     is_owner = models.BooleanField(default=False)  # is team super admin/owner
     is_admin = models.BooleanField(default=False)  # is team admin
