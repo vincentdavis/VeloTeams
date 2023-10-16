@@ -1,6 +1,6 @@
 # General
 #------------------------------------------------------------------------------
-pip==23.2.1
+pip==23.3
 requests==2.31.0
 python-slugify==8.0.1  # https://github.com/un33k/python-slugify
 Pillow==10.0.1  # https://github.com/python-pillow/Pillow
