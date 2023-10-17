@@ -162,7 +162,7 @@ MIDDLEWARE = [
 MIDDLEWARE += [
     # "simple_history.middleware.HistoryRequestMiddleware",
     "django_htmx.middleware.HtmxMiddleware",
-    "allauth.account.middleware.AccountMiddleware",
+    # "allauth.account.middleware.AccountMiddleware",
 ]
 
 # STATIC
@@ -306,3 +306,6 @@ SOCIALACCOUNT_FORMS = {"signup": "veloteams.users.forms.UserSocialSignupForm"}
 
 # Your stuff...
 # ------------------------------------------------------------------------------
+ZP_USERNAME = env('ZP_USERNAME', default=None) 
+ZP_PASSWORD = env('ZP_PASSWORD', default=None)
+ZP_URL='https://zwiftpower.com'
