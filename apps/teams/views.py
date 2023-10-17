@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from .models import Team, TeamMember
-from django.views.generic import CreateView, UpdateView, ListView, FormView, TemplateView
+from django.views.generic import CreateView, UpdateView, ListView, FormView, TemplateView, DetailView
 from django.urls import reverse_lazy
 from django import forms
 from django.db.models import Q
@@ -85,4 +85,14 @@ class JoinTeamIDView(LoginRequiredMixin, TemplateView):
         # Initialize the form with the passed team_id.
         context['form'] = JoinTeamForm(initial={'team': team_id})
         
+        return context
+
+class TeamProfileView(DetailView):
+    model = Team
+    template_name = 'team_profile.html'
+    context_object_name = 'team'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # You can add more context here if needed
         return context
