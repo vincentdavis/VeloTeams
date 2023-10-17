@@ -2550,7 +2550,6 @@ var Events = /** @class */ (function () {
     return Events;
 }());
 /* harmony default export */ const events = (Events);
-//# sourceMappingURL=events.js.map
 ;// CONCATENATED MODULE: ./node_modules/flowbite/lib/esm/components/accordion/index.js
 var __assign = (undefined && undefined.__assign) || function () {
     __assign = Object.assign || function(t) {
