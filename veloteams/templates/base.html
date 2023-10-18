@@ -19,6 +19,7 @@
   {% tailwind_css %}
   <!-- This file stores project-specific CSS -->
   <link href="{% static 'css/project.css' %}" rel="stylesheet" />
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
   {% endblock css %}
 
   <!-- Le javascript
@@ -27,9 +28,10 @@
   {% block javascript %}
   <!-- Bootstrap JS -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/1.8.1/flowbite.min.js"></script>
-  <!-- Your stuff: Third-party javascript libraries go here -->
   <!-- place project specific Javascript in this file -->
   <script defer src="{% static 'js/project.js' %}"></script>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=UA-141734189-9"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   {% endblock javascript %}
 
 </head>
@@ -63,6 +65,8 @@
   </script>
   {% endcomment %}
   {% endblock inline_javascript %}
+  <script src="{% static 'js/app.bundle.js' %} "></script>
+
 </body>
 
 </html>

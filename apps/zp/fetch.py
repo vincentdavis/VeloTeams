@@ -15,7 +15,7 @@ class ZPSession(object):
                 raise e
         else:
             self.login_data = login_data
-        # self.zp_url = settings.ZP_URL
+        self.zp_url = settings.ZP_URL
         self.session = None
         # User Agent required or will be blocked at some apis
         self.user_agent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36"
