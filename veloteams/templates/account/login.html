@@ -21,7 +21,7 @@
                    value="{{ redirect_field_value }}" />
           {% endif %}
               <h1 class="text-xl font-bold text-gray-900 dark:text-white">Welcome back</h1>
-              <div class="items-center space-x-0 space-y-3 sm:flex sm:space-x-4 sm:space-y-0">
+              <!-- <div class="items-center space-x-0 space-y-3 sm:flex sm:space-x-4 sm:space-y-0">
                   <a href="#"
                       class="w-full inline-flex items-center justify-center py-2.5 px-5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-gray-900 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">
                       <svg class="w-5 h-5 mr-2" viewBox="0 0 21 20" fill="none"
@@ -41,7 +41,7 @@
                   <div class="w-full h-0.5 bg-gray-200 dark:bg-gray-700"></div>
                   <div class="px-5 text-center text-gray-500 dark:text-gray-400">or</div>
                   <div class="w-full h-0.5 bg-gray-200 dark:bg-gray-700"></div>
-              </div>
+              </div> -->
               <div>
                 {% csrf_token %}
                   <label for="email"
@@ -62,7 +62,7 @@
                       <div class="flex items-center h-5">
                           <input id="remember" aria-describedby="remember" type="checkbox"
                               class="w-4 h-4 border border-gray-300 rounded bg-gray-50 focus:ring-3 focus:ring-primary-300 dark:bg-gray-700 dark:border-gray-600 dark:focus:ring-primary-600 dark:ring-offset-gray-800"
-                              required="">
+                              >
                       </div>
                       <div class="ml-3 text-sm">
                           <label for="remember" class="text-gray-500 dark:text-gray-300">Remember me</label>

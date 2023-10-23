@@ -10,10 +10,10 @@ User = get_user_model()
 # Create your models here.
 class Team(models.Model):
     team_name = models.CharField(max_length=255, blank=False)
-    zp_id = models.IntegerField(blank=True, unique=True)  # team ID at zp
+    zp_id = models.IntegerField(blank=True, unique=True, verbose_name="Zwift Power ID")  # team ID at zp
     riders = models.ForeignKey(TeamRiders, on_delete=models.SET_NULL, null=True)  # team ID at zp
     pending = models.ForeignKey(TeamPending, on_delete=models.SET_NULL, null=True)  # team ID at zp
-    results = models.ForeignKey(TeamResults, on_delete=models.SET_NULL, null=True)  # team ID at zp
+    results = models.ForeignKey(TeamResults, on_delete=models.SET_NULL, null=True, verbose_name="Zwift ID")  # team ID at zp
     zw_id = models.ForeignKey(ZWProfile, on_delete=models.SET_NULL, null=True)  # Club ID at zw
     modified_at = models.DateTimeField(auto_now=True)
     created_at = models.DateTimeField(auto_now_add=True)
