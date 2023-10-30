@@ -39,6 +39,15 @@ services:
     image: redis:6
     restart: always
 
+  celeryworker:
+    <<: *django
+    image: veloteams_production_celeryworker
+    command: /start-celeryworker
+
+  celerybeat:
+    <<: *django
+    image: veloteams_production_celerybeat
+    command: /start-celerybeat
   nginx:
     build:
       context: .
