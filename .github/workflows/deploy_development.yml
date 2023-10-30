@@ -65,7 +65,6 @@ jobs:
           cd /home/VeloTeams
           cp -rf ../.envs .
           docker-compose -f production.yml build
-          docker-compose -f development.yml run django python manage.py migrate
           docker-compose -f production.yml up -d
         ENDSSH
       env:
