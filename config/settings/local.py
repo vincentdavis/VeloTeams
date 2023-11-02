@@ -52,7 +52,7 @@ INTERNAL_IPS = ["127.0.0.1", "10.0.2.2"]
 # ------------------------------------------------------------------------------
 
 # https://docs.celeryq.dev/en/stable/userguide/configuration.html#task-eager-propagates
-CELERY_TASK_EAGER_PROPAGATES = True
+CELERY_TASK_EAGER_PROPAGATES = False
 
 
 # django-extensions
@@ -64,4 +64,6 @@ INSTALLED_APPS += ["django_extensions"]  # noqa: F405
 # ------------------------------------------------------------------------------
 # https://github.com/adamchainz/django-browser-reload
 INSTALLED_APPS += ["django_browser_reload"]  # noqa: F405
-MIDDLEWARE += ["django_browser_reload.middleware.BrowserReloadMiddleware",]  # noqa: F405
+MIDDLEWARE += [
+    "django_browser_reload.middleware.BrowserReloadMiddleware",
+]  # noqa: F405
