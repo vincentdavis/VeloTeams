@@ -28,7 +28,7 @@ certificatesResolvers:
 http:
   routers:
     web-secure-router:
-      rule: 'Host(`veloteams.app`)'
+      rule: 'Host(`dev.veloteams.app`)'
       entryPoints:
         - web-secure
       middlewares:
@@ -39,7 +39,7 @@ http:
         certResolver: letsencrypt
 
     web-media-router:
-      rule: '(Host(`veloteams.app`)) && PathPrefix(`/media/`)'
+      rule: '(Host(`dev.veloteams.app`)) && PathPrefix(`/media/`)'
       entryPoints:
         - web-secure
       middlewares:
