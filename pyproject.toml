@@ -14,10 +14,10 @@
 #plugins = ["django_coverage_plugin"]
 
 
-# ==== black ====
-[tool.black]
-line-length = 120
-target-version = ['py311']
+## ==== black ====
+#[tool.black]
+#line-length = 120
+#target-version = ['py311']
 
 
 ## ==== isort ====
@@ -102,10 +102,47 @@ django-settings-module = "config.settings.local"
 #[tool.djlint.js]
 #indent_size = 2
 
+#[tool.ruff]
+#target-version = "py311"
+#line-length = 120
+#select = ["E", "F", "B", "DJ", "FLY", "I"]
+## Allow autofix for all enabled rules (when `--fix`) is provided.
+#fixable = ["ALL"]
+#unfixable = []
+
 [tool.ruff]
-target-version = "py311"
+target-version = "py312"
 line-length = 120
-select = ["E", "F", "B", "DJ", "FLY", "I"]
-# Allow autofix for all enabled rules (when `--fix`) is provided.
+
+[tool.ruff.lint]
+select = [
+    # pycodestyle
+    "E",
+    # Pyflakes
+    "F",
+    # pyupgrade
+    "UP",
+    # flake8-bugbear
+    "B",
+    # flake8-simplify
+    "SIM",
+    # Django
+    "DJ",
+    "FLY",
+    # isort
+    "I",
+]
+ignore = []
+# Allow fix for all enabled rules (when `--fix`) is provided.
 fixable = ["ALL"]
 unfixable = []
+
+[tool.ruff.format]
+# Like Black, use double quotes for strings.
+quote-style = "double"
+# Like Black, indent with spaces, rather than tabs.
+indent-style = "space"
+# Like Black, respect magic trailing commas.
+skip-magic-trailing-comma = false
+# Like Black, automatically detect the appropriate line ending.
+line-ending = "auto"
