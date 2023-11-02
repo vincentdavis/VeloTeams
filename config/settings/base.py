@@ -88,7 +88,7 @@ THIRD_PARTY_APPS = [
     "allauth",
     "allauth.account",
     "allauth.socialaccount",
-    'allauth.socialaccount.providers.strava',
+    "allauth.socialaccount.providers.strava",
     "django_celery_beat",
     "simple_history",
 ]
@@ -286,7 +286,7 @@ if USE_TZ:
     # https://docs.celeryq.dev/en/stable/userguide/configuration.html#std:setting-timezone
     CELERY_TIMEZONE = TIME_ZONE
 # https://docs.celeryq.dev/en/stable/userguide/configuration.html#std:setting-broker_url
-CELERY_BROKER_URL = env("CELERY_BROKER_URL")
+CELERY_BROKER_URL = env("CELERY_BROKER_URL", default="")
 # https://docs.celeryq.dev/en/stable/userguide/configuration.html#std:setting-result_backend
 CELERY_RESULT_BACKEND = CELERY_BROKER_URL
 # https://docs.celeryq.dev/en/stable/userguide/configuration.html#result-extended
@@ -340,6 +340,6 @@ SOCIALACCOUNT_FORMS = {"signup": "veloteams.users.forms.UserSocialSignupForm"}
 
 # Your stuff...
 # ------------------------------------------------------------------------------
-ZP_USERNAME = env('ZP_USERNAME', default=None) 
-ZP_PASSWORD = env('ZP_PASSWORD', default=None)
-ZP_URL='https://zwiftpower.com'
+ZP_USERNAME = env("ZP_USERNAME", default=None)
+ZP_PASSWORD = env("ZP_PASSWORD", default=None)
+ZP_URL = "https://zwiftpower.com"
