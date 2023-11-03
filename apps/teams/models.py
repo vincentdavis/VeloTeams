@@ -1,9 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.db import models
 
-from apps.zp.models import TeamPending, TeamResults, TeamRiders
-from apps.zw.models import Profile as ZWProfile
-
 User = get_user_model()
 
 
@@ -11,10 +8,7 @@ User = get_user_model()
 class Team(models.Model):
     team_name = models.CharField(max_length=255, blank=False)
     zp_id = models.IntegerField(blank=True, unique=True, verbose_name="Zwift Power ID")  # team ID at zp
-    riders = models.ForeignKey(TeamRiders, on_delete=models.SET_NULL, null=True)  # team ID at zp
-    pending = models.ForeignKey(TeamPending, on_delete=models.SET_NULL, null=True)  # team ID at zp
-    results = models.ForeignKey(TeamResults, on_delete=models.SET_NULL, null=True, verbose_name="Zwift ID")  # team ID at zp
-    zw_id = models.ForeignKey(ZWProfile, on_delete=models.SET_NULL, null=True)  # Club ID at zw
+    zw_id = models.CharField(blank=True, unique=True, verbose_name="Zwift Club name")  # Club name at Zwift.com)
     modified_at = models.DateTimeField(auto_now=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
