@@ -3,7 +3,7 @@ name: Deploy KARTHICK
 on:
   push:
     branches:
-      - KARTHICK
+#      - KARTHICK
 
 jobs:
   deploy:
