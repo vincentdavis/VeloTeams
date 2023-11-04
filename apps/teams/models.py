@@ -11,7 +11,7 @@ class Team(models.Model):
     team_name = models.CharField(max_length=255, blank=False)
     zp_id = models.IntegerField(blank=True, null=True, unique=True, verbose_name="Zwift Power ID")  # team ID at zp
     zw_id = models.CharField(
-        blank=True, unique=True, verbose_name="Zwift Club name", default=""
+        blank=True, unique=True, verbose_name="Zwift Club Name", default=""
     )  # Club name at Zwift.com)
     modified_at = models.DateTimeField(auto_now=True)
     created_at = models.DateTimeField(auto_now_add=True)
