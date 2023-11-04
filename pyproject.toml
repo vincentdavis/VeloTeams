@@ -15,9 +15,9 @@
 
 
 ## ==== black ====
-#[tool.black]
-#line-length = 120
-#target-version = ['py311']
+[tool.black]
+line-length = 120
+target-version = ['py312']
 
 
 ## ==== isort ====
