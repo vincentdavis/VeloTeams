@@ -7,6 +7,7 @@ class TeamRiders(models.Model):
     team_riders is the data stored as the list in "data":[....]
     """
 
+    zp_id = models.IntegerField(blank=False, null=False)
     team_riders = models.JSONField(blank=False)
     modified_at = models.DateTimeField(auto_now=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -39,6 +40,7 @@ class Profile(models.Model):
     - profile: /api3.php?do=profile&id={user_id}
     """
 
+    zp_id = models.IntegerField(blank=False, null=False)
     profile = models.JSONField(blank=False)
     modified_at = models.DateTimeField(auto_now=True)
     created_at = models.DateTimeField(auto_now_add=True)
