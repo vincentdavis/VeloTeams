@@ -17,18 +17,16 @@ jobs:
     - name: Create .env file
       run: |
         echo "DJANGO_SETTINGS_MODULE=config.settings.production" >> .django
-        echo "DJANGO_SECRET_KEY=${{ secrets.DJANGO_SECRET_KEY }}" >> .django
-        echo "DJANGO_ADMIN_URL=${{ secrets.DJANGO_ADMIN_URL }}" >> .django
-        echo "DJANGO_ALLOWED_HOSTS=${{ secrets.DJANGO_ALLOWED_HOSTS }}" >> .django
-        echo "DJANGO_SECURE_SSL_REDIRECT=${{ secrets.DJANGO_SECURE_SSL_REDIRECT }}" >> .django
-        echo "DJANGO_SERVER_EMAIL=${{ secrets.DJANGO_SERVER_EMAIL }}" >> .django
-        echo "SENDGRID_API_KEY=${{ secrets.SENDGRID_API_KEY }}" >> .django
-        echo "SENDGRID_GENERATE_MESSAGE_ID=${{ secrets.SENDGRID_GENERATE_MESSAGE_ID }}" >> .django
-        echo "SENDGRID_MERGE_FIELD_FORMAT=${{ secrets.SENDGRID_MERGE_FIELD_FORMAT }}" >> .django
-        echo "DJANGO_DEFAULT_FROM_EMAIL=${{ secrets.DJANGO_DEFAULT_FROM_EMAIL }}" >> .django
         echo "ADMINS=${{ secrets.ADMINS }}" >> .django
         echo "DJANGO_ACCOUNT_ALLOW_REGISTRATION=${{ secrets.DJANGO_ACCOUNT_ALLOW_REGISTRATION }}" >> .django
-        echo "REDIS_URL=${{ secrets.REDIS_URL }}" >> .django
+        echo "DJANGO_ADMIN_URL=${{ secrets.DJANGO_ADMIN_URL }}" >> .django
+        echo "DJANGO_ALLOWED_HOSTS=${{ secrets.DJANGO_ALLOWED_HOSTS }}" >> .django
+        echo "DJANGO_DEFAULT_FROM_EMAIL=${{ secrets.DJANGO_DEFAULT_FROM_EMAIL }}" >> .django
+        echo "DJANGO_SECRET_KEY=${{ secrets.DJANGO_SECRET_KEY }}" >> .django
+        echo "DJANGO_SECURE_SSL_REDIRECT=${{ secrets.DJANGO_SECURE_SSL_REDIRECT }}" >> .django
+        echo "DJANGO_SERVER_EMAIL=${{ secrets.DJANGO_SERVER_EMAIL }}" >> .django
+        echo "DJANGO_SETTINGS_MODULE=${{ secrets.DJANGO_SETTINGS_MODULE }}" >> .django
+
         echo "MAILGUN_API_KEY=${{ secrets.MAILGUN_API_KEY }}" >> .django
         echo "MAILGUN_DOMAIN=${{ secrets.MAILGUN_DOMAIN }}" >> .django
         echo "SENTRY_DSN=${{ secrets.SENTRY_DSN }}" >> .django
@@ -41,6 +39,26 @@ jobs:
         echo "POSTGRES_DB=${{ secrets.POSTGRES_DB }}" >> .postgres
         echo "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" >> .postgres
         echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> .postgres
+
+        echo "REDIS_URL=${{ secrets.REDIS_URL }}" >> .django
+
+        echo "SENDGRID_API_KEY=${{ secrets.SENDGRID_API_KEY }}" >> .django
+        echo "SENDGRID_GENERATE_MESSAGE_ID=${{ secrets.SENDGRID_GENERATE_MESSAGE_ID }}" >> .django
+        echo "SENDGRID_MERGE_FIELD_FORMAT=${{ secrets.SENDGRID_MERGE_FIELD_FORMAT }}" >> .django
+
+        echo "SENTRY_DSN=${{ secrets.SENTRY_DSN }}" >> .django
+#        echo "SERVER_HOST=${{ secrets.SERVER_HOST }}" >> .django
+#        echo "SERVER_SSH_KEY=${{ secrets.SERVER_SSH_KEY }}" >> .django
+
+        echo "WEB_CONCURRENCY=4" >> .django
+        echo "ZP_PASSWORD=${{ secrets.ZP_PASSWORD }}" >> .django
+        echo "ZP_URL=${{ secrets.ZP_URL }}" >> .django
+        echo "ZP_USERNAME=${{ secrets.ZP_USERNAME }}" >> .django
+
+
+
+
+
 
     - name: Add SSH known hosts
       run: |
