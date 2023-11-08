@@ -26,26 +26,18 @@ jobs:
         echo "DJANGO_SECURE_SSL_REDIRECT=${{ secrets.DJANGO_SECURE_SSL_REDIRECT }}" >> .django
         echo "DJANGO_SERVER_EMAIL=${{ secrets.DJANGO_SERVER_EMAIL }}" >> .django
         echo "DJANGO_SETTINGS_MODULE=${{ secrets.DJANGO_SETTINGS_MODULE }}" >> .django
-
         echo "MAILGUN_API_KEY=${{ secrets.MAILGUN_API_KEY }}" >> .django
         echo "MAILGUN_DOMAIN=${{ secrets.MAILGUN_DOMAIN }}" >> .django
-
         echo "POSTGRES_HOST=${{ secrets.POSTGRES_HOST }}" >> .postgres
         echo "POSTGRES_PORT=${{ secrets.POSTGRES_PORT }}" >> .postgres
         echo "POSTGRES_DB=${{ secrets.POSTGRES_DB }}" >> .postgres
         echo "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" >> .postgres
         echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> .postgres
-
         echo "REDIS_URL=${{ secrets.REDIS_URL }}" >> .django
-
         echo "SENDGRID_API_KEY=${{ secrets.SENDGRID_API_KEY }}" >> .django
         echo "SENDGRID_GENERATE_MESSAGE_ID=${{ secrets.SENDGRID_GENERATE_MESSAGE_ID }}" >> .django
         echo "SENDGRID_MERGE_FIELD_FORMAT=${{ secrets.SENDGRID_MERGE_FIELD_FORMAT }}" >> .django
-
         echo "SENTRY_DSN=${{ secrets.SENTRY_DSN }}" >> .django
-#        echo "SERVER_HOST=${{ secrets.SERVER_HOST }}" >> .django
-#        echo "SERVER_SSH_KEY=${{ secrets.SERVER_SSH_KEY }}" >> .django
-
         echo "WEB_CONCURRENCY=4" >> .django
         echo "ZP_PASSWORD=${{ secrets.ZP_PASSWORD }}" >> .django
         echo "ZP_URL=${{ secrets.ZP_URL }}" >> .django
