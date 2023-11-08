@@ -1,6 +1,5 @@
 from django.db import models
 
-
 class TeamRiders(models.Model):
     """
     - team_riders: /api3.php?do=team_riders&id={id}
