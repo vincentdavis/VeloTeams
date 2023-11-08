@@ -2,6 +2,7 @@ import time
 
 from apps.zp.fetch import ZPSession
 from apps.zp.models import Profile, TeamRiders
+from apps.teams.models import Team
 from config import celery_app
 
 
@@ -9,7 +10,7 @@ from config import celery_app
 def update_teamriders():
     """Get a list of zp team ids and fetch the member list"""
     zps = ZPSession()
-    zp_team_ids = TeamRiders.objects.values_list("zp_id", flat=True)
+    zp_team_ids = Team.objects.values_list("zp_id", flat=True)
     try_count = 0
     for zp_team_id in zp_team_ids:
         try:
