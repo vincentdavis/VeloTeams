@@ -1,8 +1,11 @@
 # sync.py
 
 import time
+
+from apps.teams.models import Team
 from apps.zp.fetch import ZPSession
 from apps.zp.models import Profile, TeamRiders
+
 
 class TeamRidersUpdater:
     def __init__(self):
@@ -10,7 +13,7 @@ class TeamRidersUpdater:
         self.try_count = 0
 
     def update_teamriders(self):
-        zp_team_ids = TeamRiders.objects.values_list("zp_id", flat=True)
+        zp_team_ids = Team.objects.values_list("zp_id", flat=True)
         for zp_team_id in zp_team_ids:
             try:
                 data_set = self.zps.get_api(id=zp_team_id, api="team_riders")
