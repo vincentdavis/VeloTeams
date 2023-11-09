@@ -35,7 +35,8 @@ class TeamRidersUpdater:
 class ProfilesFromTeams:
     def add_profiles_from_teams(self):
         logging.info("Move profiles from teams to profiles table")
-        zp_team_riders = TeamRiders.objects.all()
+        # zp_team_riders = TeamRiders.objects.all()
+        zp_team_riders = TeamRiders.objects.order_by("zp_id", "-modified_at").distinct("zp_id")
         for team in zp_team_riders:
             logging.info(f"Adding profiles from team: {team.zp_id}")
             for rider in team.team_riders:
