@@ -50,6 +50,7 @@ class ZPProfileUpdater:
         for zp_profile in zp_profiles:
             try:
                 data_set = self.zps.get_api(id=zp_profile.zp_id, api="profile_profile")
+                data_set = data_set["profile_profile"]["data"]
                 if len(data_set) > 0:
                     zp_profile.profile = data_set
                     zp_profile.save()
