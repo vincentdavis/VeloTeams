@@ -1,5 +1,6 @@
 from django.db import models
 
+
 class TeamRiders(models.Model):
     """
     - team_riders: /api3.php?do=team_riders&id={id}
@@ -18,6 +19,7 @@ class TeamPending(models.Model):
     - team_pending: /api3.php?do=team_pending&id={id}&_=1693775560118
     """
 
+    zp_id = models.IntegerField(blank=False, null=False)
     team_pending = models.JSONField(blank=False)
     modified_at = models.DateTimeField(auto_now=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -29,6 +31,7 @@ class TeamResults(models.Model):
     - Results: /api3.php?do=team_results&id={id}
     """
 
+    zp_id = models.IntegerField(blank=False, null=False)
     team_results = models.JSONField(blank=False)
     modified_at = models.DateTimeField(auto_now=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -51,6 +54,7 @@ class ProfileVictims(models.Model):
     - profile_victims: /cache3/profile/{id}_rider_compare_victims.json
     """
 
+    zp_id = models.IntegerField(blank=False, null=False)
     victims = models.JSONField(blank=False)
     modified_at = models.DateTimeField(auto_now=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -61,6 +65,7 @@ class ProfileSignups(models.Model):
     - profile_signups: /cache3/profile/{id}_signups.json
     """
 
+    zp_id = models.IntegerField(blank=False, null=False)
     signups = models.JSONField(blank=False)
     modified_at = models.DateTimeField(auto_now=True)
     created_at = models.DateTimeField(auto_now_add=True)
