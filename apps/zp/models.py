@@ -43,7 +43,7 @@ class Profile(models.Model):
     """
 
     zp_id = models.IntegerField(blank=False, null=False)
-    profile = models.JSONField(blank=False)
+    profile = models.JSONField(blank=False, null=True)
     modified_at = models.DateTimeField(auto_now=True)
     created_at = models.DateTimeField(auto_now_add=True)
     # history = HistoricalRecords()
@@ -55,7 +55,7 @@ class ProfileVictims(models.Model):
     """
 
     zp_id = models.IntegerField(blank=False, null=False)
-    victims = models.JSONField(blank=False)
+    victims = models.JSONField(blank=False, null=True)
     modified_at = models.DateTimeField(auto_now=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -66,6 +66,6 @@ class ProfileSignups(models.Model):
     """
 
     zp_id = models.IntegerField(blank=False, null=False)
-    signups = models.JSONField(blank=False)
+    signups = models.JSONField(blank=False, null=True)
     modified_at = models.DateTimeField(auto_now=True)
     created_at = models.DateTimeField(auto_now_add=True)

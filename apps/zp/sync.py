@@ -34,10 +34,14 @@ class TeamRidersUpdater:
 
 class ProfilesFromTeams:
     def add_profiles_from_teams(self):
+        logging.info("Move profiles from teams to profiles table")
         zp_team_riders = TeamRiders.objects.all()
         for team in zp_team_riders:
+            logging.info(f"Adding profiles from team: {team.zp_id}")
             for rider in team.team_riders:
-                Profile.objects.get_or_create(zp_id=rider["zwid"])
+                logging.info(f"Get or creat zp Profile: {rider['zwid']}")
+                got, created = Profile.objects.get_or_create(zp_id=int(rider["zwid"]))
+                logging.info(f"Created? {created} rider Profile{rider['zwid']}")
 
 
 class ZPProfileUpdater:
