@@ -22,7 +22,6 @@ class FetchTeamRiders:
                 if len(data_set) > 0:
                     tr, created = TeamRiders.objects.get_or_create(zp_id=zp_team_id, team_riders=data_set)
                     logging.info(f"Created new TeamRider entry: {created} for team: {zp_team_id}")
-
             except:
                 self.try_count += 1
                 logging.info(f"Retry get team data: {zp_team_id}")
@@ -43,16 +42,17 @@ class FetchTeamResults:
             logging.info(f"Get team result data: {zp_team_id}")
             try:
                 data_set = self.zps.get_api(id=zp_team_id, api="team_results")
-                data_set = data_set["team_results"]["data"]
-                if len(data_set) > 0:
-                    tr, created = TeamResults.objects.get_or_create(zp_id=zp_team_id, team_riders=data_set)
+                data_set = data_set["team_results"]  # dict_keys(['events', 'data'])
+                if "events" in data_set and " in data_set":
+                    tr, created = TeamResults.objects.get_or_create(zp_id=zp_team_id, team_results=data_set)
                     logging.info(f"Created new TeamResult entry: {created} for team: {zp_team_id}")
 
-            except:
+            except Exception as e:
                 self.try_count += 1
+                logging.warning(f"Failed to get team result data: {e}")
                 logging.info(f"Retry get team result data: {zp_team_id}")
                 if self.try_count >= 4:
-                    logging.warning(f"Exceeded get team result data : {zp_team_id}")
+                    logging.error(f"Exceeded get team result data : {zp_team_id}")
                     break
             time.sleep(5 + self.try_count * 30)
 
