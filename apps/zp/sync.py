@@ -1,5 +1,5 @@
 # sync.py
-
+import logging
 import time
 
 from apps.teams.models import Team
@@ -15,16 +15,20 @@ class TeamRidersUpdater:
     def update_teamriders(self):
         zp_team_ids = Team.objects.values_list("zp_id", flat=True)
         for zp_team_id in zp_team_ids:
+            logging.info(f"Get team data: {zp_team_id}")
             try:
                 data_set = self.zps.get_api(id=zp_team_id, api="team_riders")
+                data_set = data_set["team_riders"]["data"]
                 if len(data_set) > 0:
-                    team_obj = TeamRiders.objects.get(zp_id=zp_team_id)
-                    team_obj.team_riders = data_set
-                    team_obj.save()
+                    tr, created = TeamRiders.objects.get_or_create(zp_id=zp_team_id, team_riders=data_set)
+                    logging.info(f"Created new TeamRider entry: {created} for team: {zp_team_id}")
+
             except:
                 self.try_count += 1
-            if self.try_count >= 4:
-                break
+                logging.info(f"Retry get team data: {zp_team_id}")
+                if self.try_count >= 4:
+                    logging.warning(f"Retry get team data: {zp_team_id}")
+                    break
             time.sleep(5 + self.try_count * 30)
 
 

@@ -9,7 +9,11 @@ class ZPSession:
     def __init__(self, login_data=None):
         if login_data is None:
             try:
-                self.login_data = {"username": settings.ZP_USERNAME, "password": settings.ZP_PASSWORD, "login": "Login"}
+                self.login_data = {
+                    "username": settings.ZP_USERNAME,
+                    "password": settings.ZP_PASSWORD,
+                    "rememberMe": "on",
+                }
             except Exception as e:
                 logging.error(f"ZP login_data Needed.\n {e}")
                 raise e
@@ -29,36 +33,15 @@ class ZPSession:
             login_required = "Login Required" in r.text
             return bool(status_code and not login_required)
 
-    # def loginOLD(self):
-    #     # self.session = Session()
-    #     self.session = HTMLSession()
-    #     self.session.headers.update({"User-Agent": self.user_agent})
-    #     r = self.session.get(self.zp_url)
-    #     logging.info(r.cookies.get("phpbb3_lswlk_sid"))
-    #     self.login_data["sid"] = r.cookies.get("phpbb3_lswlk_sid")
-    #     # print(self.login_data)
-    #     try:
-    #         self.session.post(self.zp_url, data=self.login_data)
-    #         self.post_login_txt = self.session.get(f"{self.zp_url}/events.php").text
-    #         logging.info(f"Profile in VS: {'Profile' in self.post_login_txt}")
-    #         logging.info(f"Login Required in VS: {'Login Required' in self.post_login_txt}")
-    #         # assert "Profile" in verify_status
-    #         # assert "Login Required" not in verify_status
-    #         logging.info("ZP Login successful")
-    #     except Exception as e:
-    #         logging.error(f"ZP Failed to login: {e}")
-    #         return self.session
-    #         # self.session = None
-
     def login(self):
         s = HTMLSession()
+        s.headers.update({"User-Agent": self.user_agent})
         s.get("https://zwiftpower.com/")
         r2 = s.get("https://zwiftpower.com/ucp.php?mode=login&login=external&oauth_service=oauthzpsso")
         post_url = r2.html.find("form", first=True).attrs["action"]
         logging.info(f"Post URL: {post_url}")
-        data = {"username": settings.ZP_USERNAME, "password": settings.ZP_PASSWORD, "rememberMe": "on"}
-        r3 = s.post(post_url, data=data)
-        print(r3.url)
+        r3 = s.post(post_url, data=self.login_data)
+        logging.info(f"Post LOGIN URL: {r3.url}")
         try:  # make sure we are logged in
             assert "'https://secure.zwift.com/" not in r3.url
             assert "https://zwiftpower.com/events.php" in r3.url
@@ -67,6 +50,7 @@ class ZPSession:
             logging.error(f"Failed to login to ZP: {e}")
             self.session = None
             return None
+        logging.info("Logged in session created")
         self.session = s
 
     def get_session(self):
