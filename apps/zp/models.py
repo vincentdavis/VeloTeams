@@ -69,3 +69,35 @@ class ProfileSignups(models.Model):
     signups = models.JSONField(blank=False, null=True)
     modified_at = models.DateTimeField(auto_now=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+
+class AllResults(models.Model):
+    """
+    - /cache3/lists/0_zwift_event_list_results_3.json
+    """
+
+    results = models.JSONField(blank=False, null=True)
+    modified_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+class EventResultsView(models.Model):
+    """
+    - /cache3/results/{id}_view.json
+    """
+
+    zp_id = models.IntegerField(blank=False, null=False)
+    results = models.JSONField(blank=False, null=True)
+    modified_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+class EventResultsZwift(models.Model):
+    """
+    - /cache3/results/{id}_zwift.json
+    """
+
+    zp_id = models.IntegerField(blank=False, null=False)
+    results = models.JSONField(blank=False, null=True)
+    modified_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True)

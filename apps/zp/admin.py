@@ -1,6 +1,16 @@
 from django.contrib import admin
 
-from .models import Profile, ProfileSignups, ProfileVictims, TeamPending, TeamResults, TeamRiders
+from .models import (
+    AllResults,
+    EventResultsView,
+    EventResultsZwift,
+    Profile,
+    ProfileSignups,
+    ProfileVictims,
+    TeamPending,
+    TeamResults,
+    TeamRiders,
+)
 
 
 # Register your models here.
@@ -32,3 +42,18 @@ class ProfileVictimsAdmin(admin.ModelAdmin):
 @admin.register(ProfileSignups)
 class ProfileSignupsAdmin(admin.ModelAdmin):
     list_display = ["modified_at", "created_at"]
+
+
+@admin.register(AllResults)
+class AllResultsAdmin(admin.ModelAdmin):
+    list_display = ["modified_at", "created_at"]
+
+
+@admin.register(EventResultsView)
+class EventResultsViewAdmin(admin.ModelAdmin):
+    list_display = ["zp_id", "modified_at", "created_at"]
+
+
+@admin.register(EventResultsZwift)
+class EventResultsZwiftAdmin(admin.ModelAdmin):
+    list_display = ["zp_id", "modified_at", "created_at"]

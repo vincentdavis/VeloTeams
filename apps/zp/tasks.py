@@ -1,11 +1,18 @@
-import time
 from config import celery_app
-from .sync import TeamRidersUpdater, ProfilesFromTeams, ZPProfileUpdater
+
+from .sync import FetchTeamResults, FetchTeamRiders, ProfilesFromTeams, ZPProfileUpdater
+
 
 @celery_app.task()
-def update_teamriders_task():
-    updater = TeamRidersUpdater()
-    updater.update_teamriders()
+def fetch_teamriders_task():
+    action = FetchTeamRiders()
+    action.fetch()
+
+
+@celery_app.task()
+def fetch_teamresults_task():
+    action = FetchTeamResults()
+    action.fetch()
 
 
 @celery_app.task()

@@ -4,15 +4,15 @@ import time
 
 from apps.teams.models import Team
 from apps.zp.fetch import ZPSession
-from apps.zp.models import Profile, TeamRiders
+from apps.zp.models import Profile, TeamResults, TeamRiders
 
 
-class TeamRidersUpdater:
+class FetchTeamRiders:
     def __init__(self):
         self.zps = ZPSession()
         self.try_count = 0
 
-    def update_teamriders(self):
+    def fetch(self):
         zp_team_ids = Team.objects.values_list("zp_id", flat=True)
         for zp_team_id in zp_team_ids:
             logging.info(f"Get team data: {zp_team_id}")
@@ -28,6 +28,31 @@ class TeamRidersUpdater:
                 logging.info(f"Retry get team data: {zp_team_id}")
                 if self.try_count >= 4:
                     logging.warning(f"Retry get team data: {zp_team_id}")
+                    break
+            time.sleep(5 + self.try_count * 30)
+
+
+class FetchTeamResults:
+    def __init__(self):
+        self.zps = ZPSession()
+        self.try_count = 0
+
+    def fetch(self):
+        zp_team_ids = Team.objects.values_list("zp_id", flat=True)
+        for zp_team_id in zp_team_ids:
+            logging.info(f"Get team result data: {zp_team_id}")
+            try:
+                data_set = self.zps.get_api(id=zp_team_id, api="team_results")
+                data_set = data_set["team_results"]["data"]
+                if len(data_set) > 0:
+                    tr, created = TeamResults.objects.get_or_create(zp_id=zp_team_id, team_riders=data_set)
+                    logging.info(f"Created new TeamResult entry: {created} for team: {zp_team_id}")
+
+            except:
+                self.try_count += 1
+                logging.info(f"Retry get team result data: {zp_team_id}")
+                if self.try_count >= 4:
+                    logging.warning(f"Exceeded get team result data : {zp_team_id}")
                     break
             time.sleep(5 + self.try_count * 30)
 
