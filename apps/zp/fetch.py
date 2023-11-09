@@ -2,10 +2,10 @@ import json
 import logging
 
 from django.conf import settings
-from requests import Session
+from requests_html import HTMLSession
 
 
-class ZPSession(object):
+class ZPSession:
     def __init__(self, login_data=None):
         if login_data is None:
             try:
@@ -24,33 +24,50 @@ class ZPSession(object):
         if self.session is None:
             return False
         else:
-            r = self.session.get("https://zwiftpower.com")
+            r = self.session.get(self.zp_url)
             status_code = r.status_code == 200
             login_required = "Login Required" in r.text
-            if status_code and not login_required:
-                return True
-            else:
-                return False
+            return bool(status_code and not login_required)
+
+    # def loginOLD(self):
+    #     # self.session = Session()
+    #     self.session = HTMLSession()
+    #     self.session.headers.update({"User-Agent": self.user_agent})
+    #     r = self.session.get(self.zp_url)
+    #     logging.info(r.cookies.get("phpbb3_lswlk_sid"))
+    #     self.login_data["sid"] = r.cookies.get("phpbb3_lswlk_sid")
+    #     # print(self.login_data)
+    #     try:
+    #         self.session.post(self.zp_url, data=self.login_data)
+    #         self.post_login_txt = self.session.get(f"{self.zp_url}/events.php").text
+    #         logging.info(f"Profile in VS: {'Profile' in self.post_login_txt}")
+    #         logging.info(f"Login Required in VS: {'Login Required' in self.post_login_txt}")
+    #         # assert "Profile" in verify_status
+    #         # assert "Login Required" not in verify_status
+    #         logging.info("ZP Login successful")
+    #     except Exception as e:
+    #         logging.error(f"ZP Failed to login: {e}")
+    #         return self.session
+    #         # self.session = None
 
     def login(self):
-        self.session = Session()
-        self.session.headers.update({"User-Agent": self.user_agent})
-        r = self.session.get(self.zp_url)
-        logging.info(r.cookies.get("phpbb3_lswlk_sid"))
-        self.login_data["sid"] = r.cookies.get("phpbb3_lswlk_sid")
-        # print(self.login_data)
-        try:
-            self.session.post(self.zp_url, data=self.login_data)
-            verify_status = self.session.get(f"{self.zp_url}/events.php").text
-            logging.info(f"Profile in VS: {'Profile' in verify_status}")
-            logging.info(f"Login Required in VS: {'Login Required' in verify_status}")
-            # assert "Profile" in verify_status
-            # assert "Login Required" not in verify_status
-            logging.info("ZP Login successful")
+        s = HTMLSession()
+        s.get("https://zwiftpower.com/")
+        r2 = s.get("https://zwiftpower.com/ucp.php?mode=login&login=external&oauth_service=oauthzpsso")
+        post_url = r2.html.find("form", first=True).attrs["action"]
+        logging.info(f"Post URL: {post_url}")
+        data = {"username": settings.ZP_USERNAME, "password": settings.ZP_PASSWORD, "rememberMe": "on"}
+        r3 = s.post(post_url, data=data)
+        print(r3.url)
+        try:  # make sure we are logged in
+            assert "'https://secure.zwift.com/" not in r3.url
+            assert "https://zwiftpower.com/events.php" in r3.url
+            assert "invalid username or password." not in r3.text.lower()
         except Exception as e:
-            logging.error(f"ZP Failed to login: {e}")
-            return self.session
-            # self.session = None
+            logging.error(f"Failed to login to ZP: {e}")
+            self.session = None
+            return None
+        self.session = s
 
     def get_session(self):
         if self.check_status():
@@ -60,7 +77,7 @@ class ZPSession(object):
                 self.login()
                 return self.session
             except Exception as e:
-                logging.error(f"Failed to login to ZP: {e}")
+                logging.error(f"Failed to login to ZP and get session: {e}")
                 return None
 
     def get_api(self, id: int, api: str) -> json:
@@ -86,7 +103,7 @@ class ZPSession(object):
                     try:
                         raw = self.session.get(v)
                         data = json.loads(raw.text)
-                        assert "data" in data.keys()
+                        assert "data" in data
                         data_set[k] = data
                     except Exception as e:
                         logging.error(f"Failed to get data from ZP: {e}\n {raw.text}")
