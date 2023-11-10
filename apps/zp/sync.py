@@ -1,18 +1,34 @@
 # sync.py
 import logging
 import time
+from json import JSONDecodeError
+
+from django.db.models.base import ModelBase
 
 from apps.teams.models import Team
 from apps.zp.fetch import ZPSession
 from apps.zp.models import Profile, TeamPending, TeamResults, TeamRiders
 
 
-class fetch_json_records:
+def create_or_update_model(self, zp_id, api, data_set):
+    # Create a dictionary with dynamic field names
+    kwargs = {
+        "zp_id": zp_id,
+        api: data_set,  # 'api' is the variable field name
+    }
+
+    # Unpack kwargs as arguments to get_or_create
+    obj, created = self.model.objects.get_or_create(**kwargs)
+
+    return obj, created
+
+
+class FetchJsonRecords:
     """
     This adds a new json dataset to the model for each zp_id. It does not update any existing records.
     """
 
-    def __init__(self, api: str, zp_id: int | list | str = None, model: object = None):
+    def __init__(self, api: str, zp_id: int | list | str, model: ModelBase):
         self.zps = ZPSession()
         self.try_count = 0
         self.api = api
@@ -34,72 +50,91 @@ class fetch_json_records:
                 if "data" in data_set:
                     data_set = data_set["data"]
                 if len(data_set) > 0:
-                    tr, created = self.model.objects.get_or_create(zp_id=zp_id, team_riders=data_set)
+                    obj, created = self.model.objects.create_or_update_model({zp_id: zp_id, self.api: data_set})
                     logging.info(f"Created new {self.model} entry: {created} for team: {zp_id}")
+            except JSONDecodeError as e:
+                self.try_count += 1
+                logging.warning(f"Retry get {self.api} number {self.try_count} data: {zp_id}")
+                logging.warning(f"{e}")
             except Exception as e:
                 self.try_count += 1
                 logging.warning(f"Failed to get data: {e}")
                 logging.warning(f"Retry get {self.api} number {self.try_count} data: {zp_id}")
-                if self.try_count >= 4:
-                    logging.error(f"to many retries: {self.api} data: {zp_id}")
-                    break
-            time.sleep(5 + self.try_count * 30)
+            if self.try_count >= 4:
+                logging.error(f"to many retries: {self.api} data: {zp_id}")
+                break
+            time.sleep(5 + self.try_count * 5)
 
 
-class FetchTeamPending(fetch_json_records):
+class FetchTeamResults(FetchJsonRecords):
+    def __init__(self):
+        super().__init__(api="team_results", zp_id=Team.objects.values_list("zp_id", flat=True), model=TeamResults)
+
+
+class FetchTeamPending(FetchJsonRecords):
     def __init__(self):
         super().__init__(api="team_pending", zp_id=Team.objects.values_list("zp_id", flat=True), model=TeamPending)
 
 
-class FetchTeamRiders:
+class FetchTeamRiders(FetchJsonRecords):
     def __init__(self):
+        super().__init__(api="team_riders", zp_id=Team.objects.values_list("zp_id", flat=True), model=TeamRiders)
+
+
+class UpdateJsonRecords:
+    """
+    This adds a UPDATES a json dataset in a model object.
+    """
+
+    def __init__(self, api: str, zp_id: int | list | str, model: ModelBase):
         self.zps = ZPSession()
         self.try_count = 0
+        self.api = api
+        self.zp_id = zp_id
+        self.model = model
 
-    def fetch(self):
-        zp_team_ids = Team.objects.values_list("zp_id", flat=True)
-        for zp_team_id in zp_team_ids:
-            logging.info(f"Get team data: {zp_team_id}")
+    def update(self):
+        if isinstance(self.zp_id, int | list):
+            zp_ids = set(self.zp_id)
+        elif isinstance(self.zp_id, str) and self.zp_id == "all":
+            zp_ids = set(self.model.objects.values_list("zp_id", flat=True))
+            logging.info(f"zp_id count: {len(zp_ids)}")
+        else:
+            raise ValueError("zp_id must be int, list, or 'all'")
+        for zp_id in zp_ids:
+            logging.info(f"Get {self.api} data: {zp_id}")
             try:
-                data_set = self.zps.get_api(id=zp_team_id, api="team_riders")
-                data_set = data_set["team_riders"]["data"]
+                data_set = self.zps.get_api(id=zp_id, api=self.api)[self.api]
+                if "data" in data_set:
+                    data_set = data_set["data"]
                 if len(data_set) > 0:
-                    tr, created = TeamRiders.objects.get_or_create(zp_id=zp_team_id, team_riders=data_set)
-                    logging.info(f"Created new TeamRider entry: {created} for team: {zp_team_id}")
+                    obj, created = self.model.objects.create_or_update(zp_id=zp_id)
+                    if created:
+                        logging.info(f"Created new {self.model} entry: {created} for team: {zp_id}")
+                        obj[self.api] = data_set
+                        obj.save()
+                    else:
+                        logging.info(f"Updated {self.model} entry: {created} for team: {zp_id}")
+                        obj[self.api] = data_set
+                        obj.save()
+                    logging.info(f"Created new {self.model} entry: {created} for team: {zp_id}")
+            except JSONDecodeError as e:
+                self.try_count += 1
+                logging.warning(f"Retry get {self.api} number {self.try_count} data: {zp_id}")
+                logging.warning(f"{e}")
             except Exception as e:
                 self.try_count += 1
-                logging.warning(f"Failed to get team data: {e}")
-                logging.warning(f"Retry get team data: {zp_team_id}")
-                if self.try_count >= 4:
-                    logging.error(f"Retry get team data: {zp_team_id}")
-                    break
-            time.sleep(5 + self.try_count * 30)
+                logging.warning(f"Failed to get data: {e}")
+                logging.warning(f"Retry get {self.api} number {self.try_count} data: {zp_id}")
+            if self.try_count >= 4:
+                logging.error(f"to many retries: {self.api} data: {zp_id}")
+                break
+            time.sleep(5 + self.try_count * 5)
 
 
-class FetchTeamResults:
+class UpdateProfile(UpdateJsonRecords):
     def __init__(self):
-        self.zps = ZPSession()
-        self.try_count = 0
-
-    def fetch(self):
-        zp_team_ids = Team.objects.values_list("zp_id", flat=True)
-        for zp_team_id in zp_team_ids:
-            logging.info(f"Get team result data: {zp_team_id}")
-            try:
-                data_set = self.zps.get_api(id=zp_team_id, api="team_results")
-                data_set = data_set["team_results"]  # dict_keys(['events', 'data'])
-                if "events" in data_set and " in data_set":
-                    tr, created = TeamResults.objects.get_or_create(zp_id=zp_team_id, team_results=data_set)
-                    logging.info(f"Created new TeamResult entry: {created} for team: {zp_team_id}")
-
-            except Exception as e:
-                self.try_count += 1
-                logging.warning(f"Failed to get team result data: {e}")
-                logging.info(f"Retry get team result data: {zp_team_id}")
-                if self.try_count >= 4:
-                    logging.error(f"Exceeded get team result data : {zp_team_id}")
-                    break
-            time.sleep(5 + self.try_count * 30)
+        super().__init__(api="profile_profile", zp_id=Profile.objects.values_list("zp_id", flat=True), model=Profile)
 
 
 class ProfilesFromTeams:
@@ -113,27 +148,3 @@ class ProfilesFromTeams:
                 logging.info(f"Get or creat zp Profile: {rider['zwid']}")
                 got, created = Profile.objects.get_or_create(zp_id=int(rider["zwid"]))
                 logging.info(f"Created? {created} rider Profile{rider['zwid']}")
-
-
-class ZPProfileUpdater:
-    def __init__(self):
-        self.zps = ZPSession()
-        self.try_count = 0
-
-    def update_profiles(self):
-        # zp_profiles = Profile.objects.all()
-        oldest_profiles = Profile.objects.order_by("modified_at")[:50]
-        for zp_profile in oldest_profiles:
-            try:
-                data_set = self.zps.get_api(id=zp_profile.zp_id, api="profile_profile")
-                data_set = data_set["profile_profile"]["data"]
-                if len(data_set) > 0:
-                    zp_profile.profile = data_set
-                    zp_profile.save()
-            except Exception as e:
-                logging.warning(f"Failed to get Profile data: {e}")
-                self.try_count += 1
-                logging.warning(f"Retry get Profile data: {zp_profile.zp_id}")
-            if self.try_count >= 4:
-                break
-            time.sleep(5 + self.try_count * 5)

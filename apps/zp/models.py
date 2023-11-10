@@ -42,7 +42,7 @@ class Profile(models.Model):
     - profile: /api3.php?do=profile&id={user_id}
     """
 
-    zp_id = models.IntegerField(blank=False, null=False)
+    zp_id = models.IntegerField(blank=False, null=False, unique=True)
     profile = models.JSONField(blank=False, null=True)
     modified_at = models.DateTimeField(auto_now=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -86,7 +86,7 @@ class EventResultsView(models.Model):
     - /cache3/results/{id}_view.json
     """
 
-    zp_id = models.IntegerField(blank=False, null=False)
+    zp_id = models.IntegerField(blank=False, null=False, unique=True)
     results = models.JSONField(blank=False, null=True)
     modified_at = models.DateTimeField(auto_now=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -97,7 +97,7 @@ class EventResultsZwift(models.Model):
     - /cache3/results/{id}_zwift.json
     """
 
-    zp_id = models.IntegerField(blank=False, null=False)
+    zp_id = models.IntegerField(blank=False, null=False, unique=True)
     results = models.JSONField(blank=False, null=True)
     modified_at = models.DateTimeField(auto_now=True)
     created_at = models.DateTimeField(auto_now_add=True)

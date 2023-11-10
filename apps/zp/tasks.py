@@ -1,6 +1,6 @@
 from config import celery_app
 
-from .sync import FetchTeamPending, FetchTeamResults, FetchTeamRiders, ProfilesFromTeams, ZPProfileUpdater
+from .sync import FetchTeamPending, FetchTeamResults, FetchTeamRiders, ProfilesFromTeams, UpdateProfile
 
 
 @celery_app.task()
@@ -28,6 +28,6 @@ def add_profiles_from_teams_task():
 
 
 @celery_app.task()
-def update_zp_profiles_task():
-    profile_updater = ZPProfileUpdater()
-    profile_updater.update_profiles()
+def update_profiles_task():
+    action = UpdateProfile()
+    action.update()
