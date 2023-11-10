@@ -68,17 +68,21 @@ class FetchJsonRecords:
 
 class FetchTeamResults(FetchJsonRecords):
     def __init__(self):
-        super().__init__(api="team_results", zp_id=Team.objects.values_list("zp_id", flat=True), model=TeamResults)
+        super().__init__(
+            api="team_results", zp_id=list(Team.objects.values_list("zp_id", flat=True)), model=TeamResults
+        )
 
 
 class FetchTeamPending(FetchJsonRecords):
     def __init__(self):
-        super().__init__(api="team_pending", zp_id=Team.objects.values_list("zp_id", flat=True), model=TeamPending)
+        super().__init__(
+            api="team_pending", zp_id=list(Team.objects.values_list("zp_id", flat=True)), model=TeamPending
+        )
 
 
 class FetchTeamRiders(FetchJsonRecords):
     def __init__(self):
-        super().__init__(api="team_riders", zp_id=Team.objects.values_list("zp_id", flat=True), model=TeamRiders)
+        super().__init__(api="team_riders", zp_id=list(Team.objects.values_list("zp_id", flat=True)), model=TeamRiders)
 
 
 class UpdateJsonRecords:
@@ -139,7 +143,7 @@ class UpdateProfile(UpdateJsonRecords):
     def __init__(self):
         super().__init__(
             api="profile_profile",
-            zp_id=Profile.objects.filter(error="").order_by("modified_at").values_list("zp_id", flat=True)[:50],
+            zp_id=list(Profile.objects.filter(error="").order_by("modified_at").values_list("zp_id", flat=True))[:50],
             model=Profile,
         )
 
