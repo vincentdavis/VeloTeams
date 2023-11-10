@@ -130,8 +130,10 @@ class ZPProfileUpdater:
                 if len(data_set) > 0:
                     zp_profile.profile = data_set
                     zp_profile.save()
-            except:
+            except Exception as e:
+                logging.warning(f"Failed to get Profile data: {e}")
                 self.try_count += 1
+                logging.warning(f"Retry get Profile data: {zp_profile.zp_id}")
             if self.try_count >= 4:
                 break
-            time.sleep(5 + self.try_count * 30)
+            time.sleep(5 + self.try_count * 5)
