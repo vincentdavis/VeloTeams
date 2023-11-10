@@ -122,6 +122,9 @@ class UpdateJsonRecords:
                 self.try_count += 1
                 logging.warning(f"Retry get {self.api} number {self.try_count} data: {zp_id}")
                 logging.warning(f"{e}")
+                obj, created = self.model.objects.create_or_update(zp_id=zp_id)
+                obj.error = str(e)
+                obj.save()
             except Exception as e:
                 self.try_count += 1
                 logging.warning(f"Failed to get data: {e}")
@@ -136,7 +139,7 @@ class UpdateProfile(UpdateJsonRecords):
     def __init__(self):
         super().__init__(
             api="profile_profile",
-            zp_id=Profile.objects.order_by("modified_at").values_list("zp_id", flat=True)[:50],
+            zp_id=Profile.objects.filter(error="").order_by("modified_at").values_list("zp_id", flat=True)[:50],
             model=Profile,
         )
 
