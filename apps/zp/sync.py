@@ -112,7 +112,7 @@ class UpdateJsonRecords:
                 if "data" in data_set:
                     data_set = data_set["data"]
                 if len(data_set) > 0:
-                    obj, created = self.model.objects.create_or_update(zp_id=zp_id)
+                    obj, created = self.model.objects.get_or_create(zp_id=zp_id)
                     if created:
                         logging.info(f"Created new {self.model} entry: {created} for team: {zp_id}")
                         obj[self.api] = data_set
@@ -126,7 +126,7 @@ class UpdateJsonRecords:
                 self.try_count += 1
                 logging.warning(f"Retry get {self.api} number {self.try_count} data: {zp_id}")
                 logging.warning(f"{e}")
-                obj, created = self.model.objects.create_or_update(zp_id=zp_id)
+                obj, created = self.model.objects.get_or_create(zp_id=zp_id)
                 obj.error = str(e)
                 obj.save()
             except Exception as e:
