@@ -111,15 +111,21 @@ class UpdateJsonRecords:
                 data_set = self.zps.get_api(id=zp_id, api=self.api)[self.api]
                 if "data" in data_set:
                     data_set = data_set["data"]
+                # TODO: Ihis is a bad hack
+                if self.api == "profile_profile":
+                    api = "profile"
+                else:
+                    api = self.api
+
                 if len(data_set) > 0:
                     obj, created = self.model.objects.get_or_create(zp_id=zp_id)
                     if created:
                         logging.info(f"Created new {self.model} entry: {created} for team: {zp_id}")
-                        setattr(obj, self.api, data_set)
+                        setattr(obj, api, data_set)
                         obj.save()
                     else:  # this is redundant, we should try updating the data.
                         logging.info(f"Updated {self.model} entry: {created} for team: {zp_id}")
-                        setattr(obj, self.api, data_set)
+                        setattr(obj, api, data_set)
                         obj.save()
                     logging.info(f"Created new {self.model} entry: {created} for team: {zp_id}")
             except JSONDecodeError as e:
