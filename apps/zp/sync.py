@@ -135,7 +135,9 @@ class UpdateJsonRecords:
 class UpdateProfile(UpdateJsonRecords):
     def __init__(self):
         super().__init__(
-            api="profile_profile", zp_id=Profile.objects.values_list("zp_id", flat=True)[:50], model=Profile
+            api="profile_profile",
+            zp_id=Profile.objects.order_by("modified_at").values_list("zp_id", flat=True)[:50],
+            model=Profile,
         )
 
 
