@@ -104,3 +104,23 @@ class EventResultsZwift(models.Model):
     results = models.JSONField(blank=False, null=True)
     modified_at = models.DateTimeField(auto_now=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+
+class Results(models.Model):
+    """
+    rows of results gathered from profiles
+    """
+
+    zp_id = models.IntegerField(blank=False, null=False)  # event_id
+    zwid = models.IntegerField(blank=False, null=False)  # rider_id
+    event_date = models.DateField(blank=False, null=False)  # event_date
+    team = models.CharField(max_length=255, blank=True, default="")  # tname
+    name = models.CharField(max_length=255, blank=True, default="")  # name
+    results = models.JSONField(blank=False, null=True)
+    modified_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["zp_id", "zwid"], name="unique_zp_id_zwid"),
+        ]

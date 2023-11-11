@@ -1,6 +1,13 @@
 from config import celery_app
 
-from .sync import FetchTeamPending, FetchTeamResults, FetchTeamRiders, ProfilesFromTeams, UpdateProfile
+from .sync import (
+    FetchTeamPending,
+    FetchTeamResults,
+    FetchTeamRiders,
+    ProfilesFromTeams,
+    ResultsFromProfiles,
+    UpdateProfile,
+)
 
 
 @celery_app.task()
@@ -31,3 +38,9 @@ def add_profiles_from_teams_task(soft_time_limit=250):
 def update_profiles_task():
     action = UpdateProfile()
     action.update()
+
+
+@celery_app.task(soft_time_limit=500)
+def results_from_profiles():
+    action = ResultsFromProfiles()
+    action.add_results_from_profiles()

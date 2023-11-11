@@ -7,6 +7,7 @@ from .models import (
     Profile,
     ProfileSignups,
     ProfileVictims,
+    Results,
     TeamPending,
     TeamResults,
     TeamRiders,
@@ -69,3 +70,10 @@ class EventResultsViewAdmin(admin.ModelAdmin):
 class EventResultsZwiftAdmin(admin.ModelAdmin):
     list_display = ["zp_id", "modified_at", "created_at"]
     search_fields = ["zp_id"]
+
+
+@admin.register(Results)
+class ResultsAdmin(admin.ModelAdmin):
+    list_display = ["zp_id", "zwid", "name", "team", "modified_at", "created_at"]
+    search_fields = ["zp_id", "zwid", "name", "team"]
+    list_filter = ["event_date", "modified_at", "created_at"]
