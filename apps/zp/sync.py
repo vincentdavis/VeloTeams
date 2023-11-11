@@ -145,7 +145,7 @@ class UpdateProfile(UpdateJsonRecords):
     def __init__(self):
         super().__init__(
             api="profile_profile",
-            zp_id=Profile.objects.filter(error="").order_by("modified_at").values_list("zp_id", flat=True)[:50],
+            zp_id=Profile.objects.filter(error="").order_by("modified_at").values_list("zp_id", flat=True)[:100],
             model=Profile,
         )
 
@@ -173,10 +173,10 @@ class ResultsFromProfiles:
                 for result in profile.profile:
                     try:
                         logging.info(f"Get or creat zp Results: {result['zid']}")
-
                         event_date = datetime.datetime.fromtimestamp(result["event_date"]).date()
+
                         obj, created = Results.objects.get_or_create(
-                            zp_id=int(result["zid"]), zwid=profile.zp_id, event_date=event_date
+                            zp_id=int(result["zid"]), zwid=profile.zp_id, defaults={"event_date": event_date}
                         )
                         obj.team = result.get("tname", "")
                         obj.name = result.get("name", "")

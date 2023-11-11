@@ -74,6 +74,6 @@ class EventResultsZwiftAdmin(admin.ModelAdmin):
 
 @admin.register(Results)
 class ResultsAdmin(admin.ModelAdmin):
-    list_display = ["zp_id", "zwid", "name", "team", "modified_at", "created_at"]
+    list_display = ["zp_id", "zwid", "name", "team", "event_date", "modified_at", "created_at"]
     search_fields = ["zp_id", "zwid", "name", "team"]
     list_filter = ["event_date", "modified_at", "created_at"]
