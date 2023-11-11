@@ -56,6 +56,7 @@ class FetchJsonRecords:
                     obj, created = create_or_update_model(self, zp_id, self.api, data_set)
 
                     logging.info(f"Created new {self.model} entry: {created} for team: {zp_id}")
+                self.try_count = 0
             except JSONDecodeError as e:
                 self.try_count += 1
                 logging.warning(f"Retry get {self.api} number {self.try_count} data: {zp_id}")
@@ -117,25 +118,29 @@ class UpdateJsonRecords:
                 if len(data_set) > 0:
                     obj, created = self.model.objects.get_or_create(zp_id=zp_id)
                     if created:
-                        logging.info(f"Created new {self.model} entry: {created} for team: {zp_id}")
+                        logging.info(f"Created new {self.model} entry: {created} for zp_id: {zp_id}")
                         setattr(obj, api, data_set)
                         obj.save()
                     else:  # this is redundant, we should try updating the data.
-                        logging.info(f"Updated {self.model} entry: {created} for team: {zp_id}")
+                        logging.info(f"Updated {self.model} entry: {created} for zp_id: {zp_id}")
                         setattr(obj, api, data_set)
                         obj.save()
-                    logging.info(f"Created new {self.model} entry: {created} for team: {zp_id}")
+                    logging.info(f"Created new {self.model} entry: {created} for zp_id: {zp_id}")
             except JSONDecodeError as e:
                 self.try_count += 1
-                logging.warning(f"Retry get {self.api} number {self.try_count} data: {zp_id}")
+                logging.warning(f"Retry get {self.api} number {self.try_count} data zp_id: {zp_id}")
                 logging.warning(f"{e}")
                 obj, created = self.model.objects.get_or_create(zp_id=zp_id)
                 obj.error = str(e)
                 obj.save()
+                self.try_count = 0
             except Exception as e:
                 self.try_count += 1
                 logging.warning(f"Failed to get data: {e}")
                 logging.warning(f"Retry get {self.api} number {self.try_count} data: {zp_id}")
+                obj, created = self.model.objects.get_or_create(zp_id=zp_id)
+                obj.error = str(e)
+                obj.save()
             if self.try_count >= 4:
                 logging.error(f"to many retries: {self.api} data: {zp_id}")
                 break
@@ -185,7 +190,9 @@ class ResultsFromProfiles:
                         obj.save()
 
                         logging.info(f"Created? {created} result: {result['zid']}")
+                    except TypeError as e:
+                        logging.error(f"Failed to get or create result:\n {e}")
+                        logging.error(f"result:\n {result}")
                     except Exception as e:
                         logging.error(f"Failed to get or create result: {e}")
                         logging.error(f"result:\n {result}")
-                        raise
