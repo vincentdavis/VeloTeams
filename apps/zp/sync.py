@@ -53,7 +53,8 @@ class FetchJsonRecords:
                 if "data" in data_set:
                     data_set = data_set["data"]
                 if len(data_set) > 0:
-                    obj, created = self.model.objects.create_or_update_model({zp_id: zp_id, self.api: data_set})
+                    obj, created = create_or_update_model(self, zp_id, self.api, data_set)
+
                     logging.info(f"Created new {self.model} entry: {created} for team: {zp_id}")
             except JSONDecodeError as e:
                 self.try_count += 1
