@@ -180,6 +180,7 @@ class ResultsFromProfiles:
                         )
                         obj.team = result.get("tname", "")
                         obj.name = result.get("name", "")
+                        obj.results = result
                         obj.save()
 
                         logging.info(f"Created? {created} result: {result['zid']}")
