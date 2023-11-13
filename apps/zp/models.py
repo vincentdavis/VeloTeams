@@ -1,3 +1,5 @@
+from datetime import date, datetime, timedelta
+
 from django.db import models
 from django.utils.html import format_html
 
@@ -68,6 +70,32 @@ class Profile(models.Model):
         u = f"{ZP_URL}/profile.php?z={self.zp_id}"
         return format_html("<a href='{url}'>{url}</a>", url=u)
 
+    @property
+    def team(self):
+        if self.profile:
+            try:
+                return f"{self.profile[0].get('tname', '-')}"
+            except:
+                return "-"
+
+    @property
+    def recent_teams(self):
+        if self.profile:
+            try:
+                today_45 = date.today() - timedelta(days=45)
+                current_team = self.profile[0].get("tname", "")  # get most recent team name
+                recent_teams = []  # last 3
+                for row in self.profile:
+                    tname = self.profile[0].get("tname", "")
+                    event_date = datetime.fromtimestamp(row.get("event_date", "")).date()
+                    if tname != current_team and event_date > today_45:
+                        recent_teams.append((tname, str(event_date)))
+                    if len(recent_teams) >= 3 or event_date < today_45:
+                        break
+                return recent_teams if len(recent_teams) > 0 else None
+            except:
+                return None
+
 
 class ProfileVictims(models.Model):
     """
@@ -121,6 +149,7 @@ class EventResultsView(models.Model):
         u = f"{ZP_URL}/events.php?zid={self.zp_id}"
         return format_html("<a href='{url}'>{url}</a>", url=u)
 
+
 class EventResultsZwift(models.Model):
     """
     - /cache3/results/{id}_zwift.json
@@ -138,6 +167,7 @@ class EventResultsZwift(models.Model):
         """
         u = f"{ZP_URL}/events.php?zid={self.zp_id}"
         return format_html("<a href='{url}'>{url}</a>", url=u)
+
 
 class Results(models.Model):
     """
