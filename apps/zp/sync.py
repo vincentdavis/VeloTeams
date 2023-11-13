@@ -126,6 +126,12 @@ class UpdateJsonRecords:
                         setattr(obj, api, data_set)
                         obj.save()
                     logging.info(f"Created new {self.model} entry: {created} for zp_id: {zp_id}")
+                else:
+                    logging.warning(f"Empty data set for zp_id: {zp_id}")
+                    setattr(obj, api, data_set)
+                    obj.error = "Empty data set"
+                    obj.save()
+
             except JSONDecodeError as e:
                 self.try_count += 1
                 logging.warning(f"Retry get {self.api} number {self.try_count} data zp_id: {zp_id}")
