@@ -131,7 +131,7 @@ class UpdateJsonRecords:
                 else:
                     logging.warning(f"Empty data set for zp_id: {zp_id}")
                     setattr(obj, api, data_set)
-                    obj.error = f"Empty data set: {len(data_set)}"
+                    obj.error = f"Empty data set: {data_set}"
                     obj.save()
 
             except JSONDecodeError as e:

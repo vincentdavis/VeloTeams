@@ -6,7 +6,8 @@ from .sync import (
     FetchTeamRiders,
     ProfilesFromTeams,
     ResultsFromProfiles,
-    UpdateProfile, UpdateProfileErrors,
+    UpdateProfile,
+    UpdateProfileErrors,
 )
 
 
