@@ -120,16 +120,18 @@ class UpdateJsonRecords:
                     if created:
                         logging.info(f"Created new {self.model} entry: {created} for zp_id: {zp_id}")
                         setattr(obj, api, data_set)
+                        obj.error = ""
                         obj.save()
                     else:  # this is redundant, we should try updating the data.
                         logging.info(f"Updated {self.model} entry: {created} for zp_id: {zp_id}")
                         setattr(obj, api, data_set)
+                        obj.error = ""
                         obj.save()
                     logging.info(f"Created new {self.model} entry: {created} for zp_id: {zp_id}")
                 else:
                     logging.warning(f"Empty data set for zp_id: {zp_id}")
                     setattr(obj, api, data_set)
-                    obj.error = "Empty data set"
+                    obj.error = f"Empty data set: {len(data_set)}"
                     obj.save()
 
             except JSONDecodeError as e:
@@ -158,6 +160,17 @@ class UpdateProfile(UpdateJsonRecords):
         super().__init__(
             api="profile_profile",
             zp_id=Profile.objects.filter(error="").order_by("modified_at").values_list("zp_id", flat=True)[:100],
+            model=Profile,
+        )
+
+
+class UpdateProfileErrors(UpdateJsonRecords):
+    def __init__(self):
+        super().__init__(
+            api="profile_profile",
+            zp_id=Profile.objects.fiter(error__icontains="Empty data set")
+            .order_by("modified_at")
+            .values_list("zp_id", flat=True)[:100],
             model=Profile,
         )
 
