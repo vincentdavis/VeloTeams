@@ -100,7 +100,7 @@ class UpdateJsonRecords:
 
     def update(self):
         if isinstance(self.zp_id, int | list | QuerySet):
-            zp_ids = set(self.zp_id)
+            zp_ids = list(self.zp_id)
         elif isinstance(self.zp_id, str) and self.zp_id == "all":
             zp_ids = set(self.model.objects.values_list("zp_id", flat=True))
             logging.info(f"zp_id count: {len(zp_ids)}")
