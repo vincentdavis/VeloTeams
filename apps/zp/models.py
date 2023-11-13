@@ -1,4 +1,7 @@
 from django.db import models
+from django.utils.html import format_html
+
+from config.settings.base import ZP_URL
 
 
 class TeamRiders(models.Model):
@@ -47,7 +50,23 @@ class Profile(models.Model):
     error = models.CharField(max_length=255, blank=True, default="")
     modified_at = models.DateTimeField(auto_now=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
     # history = HistoricalRecords()
+    @property
+    def name(self):
+        if self.profile:
+            try:
+                return f"{self.profile[0].get('name', '-')}"
+            except:
+                return "-"
+
+    @property
+    def url(self):
+        """
+        https://zwiftpower.com/events.php?zid=3896239
+        """
+        u = f"{ZP_URL}/profile.php?z={self.zp_id}"
+        return format_html("<a href='{url}'>{url}</a>", url=u)
 
 
 class ProfileVictims(models.Model):
@@ -94,6 +113,13 @@ class EventResultsView(models.Model):
     modified_at = models.DateTimeField(auto_now=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    @property
+    def url(self):
+        """
+        /events.php?zid=3896239
+        """
+        u = f"{ZP_URL}/events.php?zid={self.zp_id}"
+        return format_html("<a href='{url}'>{url}</a>", url=u)
 
 class EventResultsZwift(models.Model):
     """
@@ -105,6 +131,13 @@ class EventResultsZwift(models.Model):
     modified_at = models.DateTimeField(auto_now=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    @property
+    def url(self):
+        """
+        https://zwiftpower.com/events.php?zid=3896239
+        """
+        u = f"{ZP_URL}/events.php?zid={self.zp_id}"
+        return format_html("<a href='{url}'>{url}</a>", url=u)
 
 class Results(models.Model):
     """
@@ -124,3 +157,11 @@ class Results(models.Model):
         constraints = [
             models.UniqueConstraint(fields=["zp_id", "zwid"], name="unique_zp_id_zwid"),
         ]
+
+    @property
+    def url(self):
+        """
+        https://zwiftpower.com/events.php?zid=3896239
+        """
+        u = f"{ZP_URL}/events.php?zid={self.zp_id}"
+        return format_html("<a href='{url}'>{url}</a>", url=u)
