@@ -130,6 +130,7 @@ class UpdateJsonRecords:
                     logging.info(f"Created new {self.model} entry: {created} for zp_id: {zp_id}")
                 else:
                     logging.warning(f"Empty data set for zp_id: {zp_id}")
+                    obj, created = self.model.objects.get_or_create(zp_id=zp_id)
                     setattr(obj, api, data_set)
                     obj.error = f"Empty data set: {data_set}"
                     obj.save()
