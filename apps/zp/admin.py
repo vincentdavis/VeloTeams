@@ -12,6 +12,18 @@ from .models import (
     TeamResults,
     TeamRiders,
 )
+from .sync import UpdateSelected
+
+
+def update_selected_profiles(modeladmin, request, queryset):
+    api = "profile_profile"
+    zp_id = list(queryset.values_list("zp_id", flat=True))
+    model = Profile
+    u = UpdateSelected(api=api, zp_id=zp_id, model=model)
+    u.update()
+
+
+update_selected_profiles.short_description = "Update selected profiles"
 
 
 # Register your models here.
@@ -38,6 +50,7 @@ class ProfileAdmin(admin.ModelAdmin):
     list_display = ["zp_id", "error", "modified_at", "created_at"]
     list_filter = ["error", "modified_at", "created_at"]
     search_fields = ["zp_id"]
+    actions = [update_selected_profiles]
 
 
 @admin.register(ProfileVictims)

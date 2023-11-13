@@ -156,6 +156,15 @@ class UpdateProfile(UpdateJsonRecords):
         )
 
 
+class UpdateSelected(UpdateJsonRecords):
+    def __init__(self, api, zp_id, model):
+        self.api = api
+        self.zp_id = zp_id
+        self.model = Profile
+        self.zps = ZPSession()
+        self.try_count = 0
+
+
 class ProfilesFromTeams:
     def add_profiles_from_teams(self):
         logging.info("Move profiles from teams to profiles table")
