@@ -108,52 +108,63 @@ class UpdateJsonRecords:
             raise ValueError("zp_id must be int, list, or 'all'")
         for zp_id in zp_ids:
             logging.info(f"Get {self.api} data: {zp_id}")
+            if self.try_count >= 4:
+                logging.error(f"To many errors: {self.api} last zp_id: {zp_id}")
+                break
+            time.sleep(3 + self.try_count * 5)
             try:
                 data_set = self.zps.get_api(id=zp_id, api=self.api)[self.api]
-                if "data" in data_set:
+                if ["data"] == list(data_set.keys()):
                     data_set = data_set["data"]
-                # TODO: Ihis is a bad hack
-                api = "profile" if self.api == "profile_profile" else self.api
-
-                if len(data_set) > 0:
-                    obj, created = self.model.objects.get_or_create(zp_id=zp_id)
-                    if created:
-                        logging.info(f"Created new {self.model} entry: {created} for zp_id: {zp_id}")
-                        setattr(obj, api, data_set)
-                        obj.error = ""
-                        obj.save()
-                    else:  # this is redundant, we should try updating the data.
-                        logging.info(f"Updated {self.model} entry: {created} for zp_id: {zp_id}")
-                        setattr(obj, api, data_set)
-                        obj.error = ""
-                        obj.save()
-                    logging.info(f"Created new {self.model} entry: {created} for zp_id: {zp_id}")
-                else:
-                    logging.warning(f"Empty data set for zp_id: {zp_id}")
-                    obj, created = self.model.objects.get_or_create(zp_id=zp_id)
-                    setattr(obj, api, data_set)
-                    obj.error = f"Empty data set: {data_set}"
-                    obj.save()
-
-            except JSONDecodeError as e:
+            except JSONDecodeError:
                 self.try_count += 1
-                logging.warning(f"Retry get {self.api} number {self.try_count} data zp_id: {zp_id}")
-                logging.warning(f"{e}")
+                logging.warning(f"JSONDecodeError: {self.api}, Retry count: {self.try_count} zp_id: {zp_id}")
+                # logging.warning(f"{e}")
                 obj, created = self.model.objects.get_or_create(zp_id=zp_id)
-                obj.error = str(e)
+                obj.error = "JSONDecodeError"
                 obj.save()
-                self.try_count = 0
+                continue
             except Exception as e:
                 self.try_count += 1
                 logging.warning(f"Failed to get data: {e}")
-                logging.warning(f"Retry get {self.api} number {self.try_count} data: {zp_id}")
+                logging.warning(f"Failded api: {self.api} retry count: {self.try_count} zp_id: {zp_id}")
                 obj, created = self.model.objects.get_or_create(zp_id=zp_id)
+                obj.error = f"fetch error: {str(e)}"
+                obj.save()
+                continue
+
+            try:
+                # TODO: This is an exception for the profile field name
+                api = "profile" if self.api == "profile_profile" else self.api
+                obj, created = self.model.objects.get_or_create(zp_id=zp_id)
+                current_data = getattr(obj, api) if getattr(obj, api) else []
+                if not created and len(data_set) >= len(current_data):
+                    logging.info(f"Updated {self.model} for zp_id: {zp_id}")
+                    setattr(obj, api, data_set)
+                    obj.error = ""
+                    obj.save()
+                elif created and len(data_set) > 0:
+                    logging.info(f"Created {self.model} for zp_id: {zp_id}")
+                    setattr(obj, api, data_set)
+                    obj.error = ""
+                    obj.save()
+                elif created and len(data_set) == 0:
+                    logging.warning(f"Empty data set for zp_id: {zp_id}")
+                    obj.error = f"Empty data set: {data_set}"
+                    obj.save()
+                elif len(data_set) < len(current_data):
+                    logging.warning(f"Data set < existing data: {api}, zp_id: {zp_id}")
+                    obj.error = "Dataset < existing data"
+                    obj.save()
+                else:
+                    continue
+                self.try_count += 0
+            except Exception as e:
+                self.try_count += 1
+                logging.warning(f"Failed: {self.api} count: {self.try_count} zp_id: {zp_id}")
+                logging.warning(f": {e}")
                 obj.error = str(e)
                 obj.save()
-            if self.try_count >= 4:
-                logging.error(f"to many retries: {self.api} data: {zp_id}")
-                break
-            time.sleep(5 + self.try_count * 5)
 
 
 class UpdateProfile(UpdateJsonRecords):
