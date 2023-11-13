@@ -168,7 +168,7 @@ class UpdateProfileErrors(UpdateJsonRecords):
     def __init__(self):
         super().__init__(
             api="profile_profile",
-            zp_id=Profile.objects.fiter(error__icontains="Empty data set")
+            zp_id=Profile.objects.filter(error__icontains="Empty data set")
             .order_by("modified_at")
             .values_list("zp_id", flat=True)[:100],
             model=Profile,
