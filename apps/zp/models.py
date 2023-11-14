@@ -197,6 +197,7 @@ class Results(models.Model):
     zp_id = models.IntegerField(blank=False, null=False, db_index=True)  # event_id
     zwid = models.IntegerField(blank=False, null=False, db_index=True)  # rider_id
     event_date = models.DateField(blank=False, null=False)  # event_date
+    tid = models.IntegerField(blank=False, null=True)  # team_id
     team = models.CharField(max_length=255, blank=True, default="")  # tname
     name = models.CharField(max_length=255, blank=True, default="")  # name
     event_title = models.CharField(max_length=255, blank=True, default="")  # event_title

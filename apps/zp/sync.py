@@ -230,6 +230,7 @@ class ResultsFromProfiles:
                         if created:
                             logging.info(f"Created new result: (zid, zwid): {result['zid']}, {result['zwid']}")
                             obj.team = result.get("tname", "")
+                            obj.tid = result.get("tid", "")
                             obj.name = result.get("name", "")
                             obj.event_title = result.get("event_title", "")
                             obj.results = result
@@ -241,6 +242,7 @@ class ResultsFromProfiles:
                                 f"Updating result within {days} days: (zid, zwid): {result['zid']}, {result['zwid']}"
                             )
                             obj.team = result.get("tname", "")
+                            obj.tid = result.get("tid", "")
                             obj.name = result.get("name", "")
                             obj.event_title = result.get("event_title", "")
                             obj.results = result
@@ -248,7 +250,15 @@ class ResultsFromProfiles:
 
                     except TypeError as e:
                         logging.error(f"Failed to get or create result:\n {e}")
-                        logging.error(f"result:\n {result}")
+                        data = {
+                            c: result.get(c, "_")
+                            for c in ["event_date", "zid", "zwid", "tname", "tid", "name", "event_title"]
+                        }
+                        logging.error(f"result:\n {data}")
                     except Exception as e:
                         logging.error(f"Failed to get or create result: {e}")
-                        logging.error(f"result:\n {result}")
+                        data = {
+                            c: result.get(c, "_")
+                            for c in ["event_date", "zid", "zwid", "tname", "tid", "name", "event_title"]
+                        }
+                        logging.error(f"result:\n {data}")
