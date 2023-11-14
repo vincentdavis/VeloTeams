@@ -92,11 +92,13 @@ class Profile(models.Model):
                 today_45 = date.today() - timedelta(days=45)
                 current_team = self.profile[0].get("tname", "")  # get most recent team name
                 recent_teams = []  # last 3
+                print(f"current_team: {current_team}")
                 for row in self.profile:
-                    tname = self.profile[0].get("tname", "")
+                    tname = row.get("tname", "")
                     event_date = datetime.fromtimestamp(row.get("event_date", "")).date()
                     if tname != current_team and event_date > today_45:
                         recent_teams.append((tname, str(event_date)))
+                        # print(f"recent_teams: {recent_teams}")
                     if len(recent_teams) >= 3 or event_date < today_45:
                         break
                 return recent_teams if len(recent_teams) > 0 else None
