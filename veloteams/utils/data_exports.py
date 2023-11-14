@@ -69,6 +69,7 @@ def zp_teamrider_results_to_csv(modeladmin, request, queryset, latest=3):
         "name",
         "url_profile",
         "team",
+        "tid",
         "Recent_Teams",
     ]
     writer = csv.DictWriter(response, fieldnames=columns)
@@ -83,7 +84,7 @@ def zp_teamrider_results_to_csv(modeladmin, request, queryset, latest=3):
             rider_result = {"Recent_Teams": set(), "on_team_ids": rider_id}
             print(results[0])
             for field in db_fields:
-                value = getattr(results[0], field, "")
+                value = getattr(results[0], field, "-")
                 if callable(value):
                     value = value()
                 rider_result[field] = value
@@ -101,6 +102,8 @@ def zp_teamrider_results_to_csv(modeladmin, request, queryset, latest=3):
                     "name": "-",
                     "url_profile": f"{ZP_URL}/profile.php?z={rider_id}",
                     "team": "-",
+                    "tid": "-",
+                    "Recent_Teams": "-",
                 }
             )
             # team_rider_results.append(my_object_dict)
