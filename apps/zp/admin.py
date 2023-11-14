@@ -73,7 +73,12 @@ update_selected_profiles.short_description = "Update selected profiles"
 def profiles_to_csv(modeladmin, request, queryset):
     opts = modeladmin.model._meta
     # Write a first row with header information
-    fields = [field for field in opts.get_fields() if not field.many_to_many and not field.one_to_many]
+    fields = [
+        field
+        for field in opts.get_fields()
+        if not field.many_to_many and not field.one_to_many and field.name != "profile"
+    ]
+    print(fields)
     properties = ["team", "recent_teams", "url"]
     return model_to_csv(modeladmin, request, queryset, fields, properties)
 
