@@ -24,7 +24,8 @@ def model_to_csv(modeladmin, request, queryset, fields=[], properties=[], json_f
     response = HttpResponse(content_type="text/csv")
     response["Content-Disposition"] = f"attachment; filename={opts}.csv"
     writer = csv.writer(response)
-    if json_field:
+    if json_field is not None:
+        logging.info("#### json_field ####")
         try:
             # print(getattr(queryset, json_field))
             header = list(getattr(queryset, json_field)[0].keys())
@@ -37,9 +38,9 @@ def model_to_csv(modeladmin, request, queryset, fields=[], properties=[], json_f
         except Exception as e:
             logging.error(f"{e}")
     else:
-        header = fields + properties
+        header = [f.name for f in fields] + properties
         writer.writerow(header)
-        # Write data rows
+        logging.info(f"CSV Header: {header}")
         for obj in queryset:
             data_row = []
             for field in fields:
@@ -56,6 +57,7 @@ def model_to_csv(modeladmin, request, queryset, fields=[], properties=[], json_f
                 # if isinstance(value, str):
                 #     value = value.encode("utf-8", "replace")
                 data_row.append(value)
+            writer.writerow(data_row)
     return response
 
 
@@ -80,7 +82,7 @@ def profiles_to_csv(modeladmin, request, queryset):
     ]
     # print(fields)
     properties = ["team", "recent_teams", "url"]
-    return model_to_csv(modeladmin, request, queryset, fields, properties)
+    return model_to_csv(modeladmin, request, queryset, fields, properties, json_field=None)
 
 
 profiles_to_csv.short_description = "Export to CSV"
