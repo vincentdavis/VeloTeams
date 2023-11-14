@@ -18,6 +18,13 @@ class TeamRiders(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     # history = HistoricalRecords()
 
+    @property
+    def rider_ids(self):
+        try:
+            return {rider.get("zwid", "") for rider in self.team_riders}
+        except:
+            return None
+
 
 class TeamPending(models.Model):
     """
