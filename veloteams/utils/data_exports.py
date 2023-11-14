@@ -81,6 +81,7 @@ def zp_teamrider_results_to_csv(modeladmin, request, queryset, latest=3):
         # print(results)
         if results.count() > 0:
             rider_result = {"Recent_Teams": set(), "on_team_ids": rider_id}
+            print(results[0])
             for field in db_fields:
                 value = getattr(results[0], field, "")
                 if callable(value):

@@ -221,19 +221,18 @@ class ResultsFromProfiles:
                     continue
                 for result in profile.profile:
                     try:
-                        logging.info(f"Get or creat zp Results: {result['zid']}")
                         event_date = datetime.datetime.fromtimestamp(result["event_date"]).date()
-
                         obj, created = Results.objects.get_or_create(
                             zp_id=int(result["zid"]), zwid=profile.zp_id, defaults={"event_date": event_date}
                         )
+
                         obj.team = result.get("tname", "")
                         obj.name = result.get("name", "")
                         obj.event_title = result.get("event_title", "")
                         obj.results = result
                         obj.save()
 
-                        logging.info(f"Created? {created} result: {result['zid']}")
+                        logging.info(f"Created? {created} result (zid, zwid): {result['zid']}, {result['zwid']}")
                     except TypeError as e:
                         logging.error(f"Failed to get or create result:\n {e}")
                         logging.error(f"result:\n {result}")
