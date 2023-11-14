@@ -81,7 +81,7 @@ def profiles_to_csv(modeladmin, request, queryset):
         if not field.many_to_many and not field.one_to_many and field.name != "profile"
     ]
     # print(fields)
-    properties = ["team", "recent_teams", "url"]
+    properties = ["team", "last_event"]
     return model_to_csv(modeladmin, request, queryset, fields, properties, json_field=None)
 
 
