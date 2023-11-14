@@ -216,6 +216,9 @@ class ResultsFromProfiles:
         for profile in zp_profiles:
             logging.info(f"Adding results from profile: {profile.zp_id}")
             if profile.profile:
+                if not isinstance(profile.profile[0], dict):
+                    logging.warning(f"not a valid profile: {profile.zp_id}")
+                    continue
                 for result in profile.profile:
                     try:
                         logging.info(f"Get or creat zp Results: {result['zid']}")
@@ -226,6 +229,7 @@ class ResultsFromProfiles:
                         )
                         obj.team = result.get("tname", "")
                         obj.name = result.get("name", "")
+                        obj.event_title = result.get("event_title", "")
                         obj.results = result
                         obj.save()
 

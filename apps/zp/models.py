@@ -54,7 +54,7 @@ class Profile(models.Model):
     - profile: /api3.php?do=profile&id={user_id}
     """
 
-    zp_id = models.IntegerField(blank=False, null=False, unique=True)
+    zp_id = models.IntegerField(blank=False, null=False, unique=True, db_index=True)
     profile = models.JSONField(blank=False, null=True)
     error = models.CharField(max_length=255, blank=True, default="")
     modified_at = models.DateTimeField(auto_now=True)
@@ -194,11 +194,12 @@ class Results(models.Model):
     rows of results gathered from profiles
     """
 
-    zp_id = models.IntegerField(blank=False, null=False)  # event_id
-    zwid = models.IntegerField(blank=False, null=False)  # rider_id
+    zp_id = models.IntegerField(blank=False, null=False, db_index=True)  # event_id
+    zwid = models.IntegerField(blank=False, null=False, db_index=True)  # rider_id
     event_date = models.DateField(blank=False, null=False)  # event_date
     team = models.CharField(max_length=255, blank=True, default="")  # tname
     name = models.CharField(max_length=255, blank=True, default="")  # name
+    event_title = models.CharField(max_length=255, blank=True, default="")  # event_title
     results = models.JSONField(blank=False, null=True)
     modified_at = models.DateTimeField(auto_now=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -208,10 +209,35 @@ class Results(models.Model):
             models.UniqueConstraint(fields=["zp_id", "zwid"], name="unique_zp_id_zwid"),
         ]
 
-    @property
-    def url(self):
+    def __str__(self):
+        return f"{self.zp_id}, {self.zwid}, {self.event_date}"
+
+    def url_event(self):
         """
-        https://zwiftpower.com/events.php?zid=3896239
+        /events.php?zid=3896239
+        """
+        u = f"{ZP_URL}/events.php?zid={self.zp_id}"
+        return u
+
+    @property
+    def url_profile(self):
+        """
+        /profile.php?z=3896239
+        """
+        u = f"{ZP_URL}/profile.php?z={self.zwid}"
+        return u
+
+    @property
+    def url_event_link(self):
+        """
+        /events.php?zid=3896239
         """
         u = f"{ZP_URL}/events.php?zid={self.zp_id}"
         return format_html("<a href='{url}'>{url}</a>", url=u)
+
+    def url_profile_link(self):
+        """
+        /profile.php?z=3896239
+        """
+        u = f"{ZP_URL}/profile.php?z={self.zwid}"
+        return u

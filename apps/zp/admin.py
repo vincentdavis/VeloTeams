@@ -1,8 +1,6 @@
-import csv
-import logging
-
 from django.contrib import admin
-from django.http import HttpResponse
+
+from veloteams.utils.data_exports import model_to_csv, zp_teamrider_results_to_csv
 
 from .models import (
     AllResults,
@@ -17,48 +15,6 @@ from .models import (
     TeamRiders,
 )
 from .sync import UpdateSelected
-
-
-def model_to_csv(modeladmin, request, queryset, fields=[], properties=[], json_field: str = None):
-    opts = modeladmin.model._meta
-    response = HttpResponse(content_type="text/csv")
-    response["Content-Disposition"] = f"attachment; filename={opts}.csv"
-    writer = csv.writer(response)
-    if json_field is not None:
-        logging.info("#### json_field ####")
-        try:
-            # print(getattr(queryset, json_field))
-            header = list(getattr(queryset, json_field)[0].keys())
-            writer.writerow(header)
-            json_data = getattr(queryset, json_field)
-            # print(f"data: {json_data[0]}")
-            for row in json_data:
-                # print(f"row: {row.values()}")
-                writer.writerow(row.values())
-        except Exception as e:
-            logging.error(f"{e}")
-    else:
-        header = [f.name for f in fields] + properties
-        writer.writerow(header)
-        logging.info(f"CSV Header: {header}")
-        for obj in queryset:
-            data_row = []
-            for field in fields:
-                value = getattr(obj, field.name)
-                if callable(value):
-                    value = value()
-                # if isinstance(value, str):
-                #     value = value.encode("utf-8", "replace")
-                data_row.append(value)
-            for prop in properties:
-                value = getattr(obj, prop)
-                if callable(value):
-                    value = value()
-                # if isinstance(value, str):
-                #     value = value.encode("utf-8", "replace")
-                data_row.append(value)
-            writer.writerow(data_row)
-    return response
 
 
 def update_selected_profiles(modeladmin, request, queryset):
@@ -80,7 +36,6 @@ def profiles_to_csv(modeladmin, request, queryset):
         for field in opts.get_fields()
         if not field.many_to_many and not field.one_to_many and field.name != "profile"
     ]
-    # print(fields)
     properties = ["team", "last_event"]
     return model_to_csv(modeladmin, request, queryset, fields, properties, json_field=None)
 
@@ -96,13 +51,15 @@ def teamriders_to_csv(modeladmin, request, queryset):
 
 teamriders_to_csv.short_description = "Export riders to CSV"
 
+zp_teamrider_results_to_csv.short_description = "Export teamriders to CSV"
+
 
 # Register your models here.
 @admin.register(TeamRiders)
 class TeamRidersAdmin(admin.ModelAdmin):
     list_display = ["id", "zp_id", "modified_at", "created_at"]
     search_fields = ["zp_id"]
-    actions = [teamriders_to_csv]
+    actions = [teamriders_to_csv, zp_teamrider_results_to_csv]
 
 
 @admin.register(TeamPending)
@@ -119,7 +76,7 @@ class TeamResultsAdmin(admin.ModelAdmin):
 
 @admin.register(Profile)
 class ProfileAdmin(admin.ModelAdmin):
-    list_per_page = 500
+    list_per_page = 100
     list_display = ["id", "zp_id", "name", "team", "last_event", "url", "error", "modified_at", "created_at"]
     list_filter = ["error", "modified_at", "created_at"]
     search_fields = ["zp_id"]
@@ -160,6 +117,17 @@ class EventResultsZwiftAdmin(admin.ModelAdmin):
 
 @admin.register(Results)
 class ResultsAdmin(admin.ModelAdmin):
-    list_display = ["id", "zp_id", "zwid", "name", "team", "url", "event_date", "modified_at", "created_at"]
+    list_display = [
+        "id",
+        "zp_id",
+        "zwid",
+        "name",
+        "team",
+        "url_event_link",
+        "url_profile_link",
+        "event_date",
+        "modified_at",
+        "created_at",
+    ]
     search_fields = ["zp_id", "zwid", "name", "team"]
     list_filter = ["event_date", "modified_at", "created_at"]
