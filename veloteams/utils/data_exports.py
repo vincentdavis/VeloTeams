@@ -98,24 +98,24 @@ def zp_teamrider_results_to_csv(modeladmin, request, queryset, latest=3):
     days = date.today() - timedelta(days=60)
     for rider_id in rider_ids:
         try:
-            rider_id = int(rider_id)
             results = Results.objects.filter(zwid=rider_id, event_date__gte=days).order_by("-event_date")[:3]
             # print(results)
             if results.count() > 0:
-                if not isinstance(results[0], dict):
-                    blank_row(rider_id)
-                    continue
                 rider_result = {"Recent_Teams": set(), "on_team_ids": rider_id}
-                print(results[0])
+                # print(results[0])
                 for field in db_fields:
                     value = getattr(results[0], field, "-")
                     if callable(value):
                         value = value()
                     rider_result[field] = value
                 for result in results:
-                    rider_result["Recent_Teams"].add(result.team)
+                    try:
+                        rider_result["Recent_Teams"].add(result.team)
+                    except Exception as e:
+                        logging.error(f"failed to get team: result_id: {result.id}\n {e}")
                 writer.writerow(rider_result)
             else:
+                logging.warning(f"results<0: {results}")
                 blank_row(rider_id)
         except Exception as e:
             logging.error(f"Failed to export {rider_id}\n {e}")
