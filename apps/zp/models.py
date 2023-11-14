@@ -240,4 +240,4 @@ class Results(models.Model):
         /profile.php?z=3896239
         """
         u = f"{ZP_URL}/profile.php?z={self.zwid}"
-        return u
+        return format_html("<a href='{url}'>{url}</a>", url=u)

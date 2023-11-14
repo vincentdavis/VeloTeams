@@ -1,7 +1,7 @@
 # sync.py
-import datetime
 import logging
 import time
+from datetime import date, datetime, timedelta
 from json import JSONDecodeError
 
 from django.db.models import QuerySet
@@ -210,29 +210,40 @@ class ProfilesFromTeams:
 
 
 class ResultsFromProfiles:
-    def add_results_from_profiles(self):
+    def add_results_from_profiles(self, days=60):
         logging.info("Move results from profiles to results table")
         zp_profiles = Profile.objects.all()
-        for profile in zp_profiles:
+        count = zp_profiles.count()
+        for i, profile in enumerate(zp_profiles):
             logging.info(f"Adding results from profile: {profile.zp_id}")
+            logging.info(f"total profile: {count}, remaining{count - i}")
             if profile.profile:
                 if not isinstance(profile.profile[0], dict):
                     logging.warning(f"not a valid profile: {profile.zp_id}")
                     continue
                 for result in profile.profile:
                     try:
-                        event_date = datetime.datetime.fromtimestamp(result["event_date"]).date()
+                        event_date = datetime.fromtimestamp(result["event_date"]).date()
                         obj, created = Results.objects.get_or_create(
                             zp_id=int(result["zid"]), zwid=profile.zp_id, defaults={"event_date": event_date}
                         )
+                        if created:
+                            logging.info(f"Created new result: (zid, zwid): {result['zid']}, {result['zwid']}")
+                            obj.team = result.get("tname", "")
+                            obj.name = result.get("name", "")
+                            obj.event_title = result.get("event_title", "")
+                            obj.results = result
+                            obj.save()
+                        if event_date > date.today() - timedelta(days=days):
+                            logging.info(
+                                f"Updating result within {days} days: (zid, zwid): {result['zid']}, {result['zwid']}"
+                            )
+                            obj.team = result.get("tname", "")
+                            obj.name = result.get("name", "")
+                            obj.event_title = result.get("event_title", "")
+                            obj.results = result
+                            obj.save()
 
-                        obj.team = result.get("tname", "")
-                        obj.name = result.get("name", "")
-                        obj.event_title = result.get("event_title", "")
-                        obj.results = result
-                        obj.save()
-
-                        logging.info(f"Created? {created} result (zid, zwid): {result['zid']}, {result['zwid']}")
                     except TypeError as e:
                         logging.error(f"Failed to get or create result:\n {e}")
                         logging.error(f"result:\n {result}")
