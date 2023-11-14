@@ -1,4 +1,5 @@
 import csv
+import logging
 
 from django.contrib import admin
 from django.http import HttpResponse
@@ -34,8 +35,7 @@ def model_to_csv(modeladmin, request, queryset, fields=[], properties=[], json_f
                 # print(f"row: {row.values()}")
                 writer.writerow(row.values())
         except Exception as e:
-            # print(f"Error: {e}")
-            pass
+            logging.error(f"{e}")
     else:
         header = fields + properties
         writer.writerow(header)
