@@ -29,12 +29,12 @@ def model_to_csv(modeladmin, request, queryset, fields=[], properties=[], json_f
             header = list(getattr(queryset, json_field)[0].keys())
             writer.writerow(header)
             json_data = getattr(queryset, json_field)
-            print(f"data: {json_data[0]}")
+            # print(f"data: {json_data[0]}")
             for row in json_data:
-                print(f"row: {row.values()}")
+                # print(f"row: {row.values()}")
                 writer.writerow(row.values())
         except Exception as e:
-            print(f"Error: {e}")
+            # print(f"Error: {e}")
             pass
     else:
         header = fields + properties
@@ -78,7 +78,7 @@ def profiles_to_csv(modeladmin, request, queryset):
         for field in opts.get_fields()
         if not field.many_to_many and not field.one_to_many and field.name != "profile"
     ]
-    print(fields)
+    # print(fields)
     properties = ["team", "recent_teams", "url"]
     return model_to_csv(modeladmin, request, queryset, fields, properties)
 
@@ -117,6 +117,7 @@ class TeamResultsAdmin(admin.ModelAdmin):
 
 @admin.register(Profile)
 class ProfileAdmin(admin.ModelAdmin):
+    list_per_page = 500
     list_display = ["id", "zp_id", "name", "team", "recent_teams", "url", "error", "modified_at", "created_at"]
     list_filter = ["error", "modified_at", "created_at"]
     search_fields = ["zp_id"]
