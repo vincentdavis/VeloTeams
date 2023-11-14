@@ -1,5 +1,6 @@
 import csv
 import logging
+from datetime import date, timedelta
 
 from django.contrib import messages
 from django.http import HttpResponse
@@ -58,6 +59,24 @@ def zp_teamrider_results_to_csv(modeladmin, request, queryset, latest=3):
     opts = modeladmin.model._meta
     response = HttpResponse(content_type="text/csv")
     response["Content-Disposition"] = f"attachment; filename={opts}.csv"
+
+    def blank_row(rider_id):
+        rider_result = {"on_team_ids": rider_id}
+        rider_result.update(
+            {
+                "event_date": "-",
+                "zp_id": "-",
+                "event_title": "-",
+                "url_event": "-",
+                "name": "-",
+                "url_profile": f"{ZP_URL}/profile.php?z={rider_id}",
+                "team": "-",
+                "tid": "-",
+                "Recent_Teams": "-",
+            }
+        )
+        writer.writerow(rider_result)
+
     rider_ids = queryset[0].rider_ids
     columns = [
         "on_team_ids",
@@ -76,36 +95,29 @@ def zp_teamrider_results_to_csv(modeladmin, request, queryset, latest=3):
     db_fields = [field for field in columns if field not in ["on_team_ids", "Recent_Teams"]]
     writer.writeheader()
     # team_rider_results = []
+    days = date.today() - timedelta(days=60)
     for rider_id in rider_ids:
-        # print(rider_id)
-        results = Results.objects.filter(zwid=rider_id).order_by("-event_date")[:3]
-        # print(results)
-        if results.count() > 0:
-            rider_result = {"Recent_Teams": set(), "on_team_ids": rider_id}
-            print(results[0])
-            for field in db_fields:
-                value = getattr(results[0], field, "-")
-                if callable(value):
-                    value = value()
-                rider_result[field] = value
-            for result in results:
-                rider_result["Recent_Teams"].add(result.team)
-            writer.writerow(rider_result)
-        else:
-            rider_result = {"on_team_ids": rider_id}
-            rider_result.update(
-                {
-                    "event_date": "-",
-                    "zp_id": "-",
-                    "event_title": "-",
-                    "url_event": "-",
-                    "name": "-",
-                    "url_profile": f"{ZP_URL}/profile.php?z={rider_id}",
-                    "team": "-",
-                    "tid": "-",
-                    "Recent_Teams": "-",
-                }
-            )
-            # team_rider_results.append(my_object_dict)
-            writer.writerow(rider_result)
+        try:
+            rider_id = int(rider_id)
+            results = Results.objects.filter(zwid=rider_id, event_date__gte=days).order_by("-event_date")[:3]
+            # print(results)
+            if results.count() > 0:
+                if not isinstance(results[0], dict):
+                    blank_row(rider_id)
+                    continue
+                rider_result = {"Recent_Teams": set(), "on_team_ids": rider_id}
+                print(results[0])
+                for field in db_fields:
+                    value = getattr(results[0], field, "-")
+                    if callable(value):
+                        value = value()
+                    rider_result[field] = value
+                for result in results:
+                    rider_result["Recent_Teams"].add(result.team)
+                writer.writerow(rider_result)
+            else:
+                blank_row(rider_id)
+        except Exception as e:
+            logging.error(f"Failed to export {rider_id}\n {e}")
+            blank_row(rider_id)
     return response
