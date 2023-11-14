@@ -85,6 +85,14 @@ class Profile(models.Model):
             except:
                 return "-"
 
+    def last_event(self):
+        if self.profile:
+            try:
+                event_date = datetime.fromtimestamp(self.profile[0].get("event_date", "-")).date()
+                return event_date
+            except:
+                return "-"
+
     @property
     def recent_teams(self):
         if self.profile:
@@ -96,6 +104,9 @@ class Profile(models.Model):
                 for row in self.profile:
                     tname = row.get("tname", "")
                     event_date = datetime.fromtimestamp(row.get("event_date", "")).date()
+                    print(f"tname: {tname} event_date: {event_date}")
+                    if tname != current_team:
+                        print(f"tname: {tname} event_date: {event_date}")
                     if tname != current_team and event_date > today_45:
                         recent_teams.append((tname, str(event_date)))
                         # print(f"recent_teams: {recent_teams}")

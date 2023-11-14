@@ -120,7 +120,7 @@ class TeamResultsAdmin(admin.ModelAdmin):
 @admin.register(Profile)
 class ProfileAdmin(admin.ModelAdmin):
     list_per_page = 500
-    list_display = ["id", "zp_id", "name", "team", "recent_teams", "url", "error", "modified_at", "created_at"]
+    list_display = ["id", "zp_id", "name", "team", "last_event", "url", "error", "modified_at", "created_at"]
     list_filter = ["error", "modified_at", "created_at"]
     search_fields = ["zp_id"]
     actions = [update_selected_profiles, profiles_to_csv]
