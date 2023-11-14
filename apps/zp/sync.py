@@ -234,6 +234,8 @@ class ResultsFromProfiles:
                             obj.event_title = result.get("event_title", "")
                             obj.results = result
                             obj.save()
+                        else:
+                            logging.info(f"Result exisits: (zid, zwid): {result['zid']}, {result['zwid']}")
                         if event_date > date.today() - timedelta(days=days):
                             logging.info(
                                 f"Updating result within {days} days: (zid, zwid): {result['zid']}, {result['zwid']}"
