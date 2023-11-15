@@ -6,8 +6,8 @@ from .sync import (
     FetchTeamRiders,
     ProfilesFromTeams,
     ResultsFromProfiles,
-    UpdateProfile,
     UpdateProfileErrors,
+    UpdateProfiles,
 )
 
 
@@ -32,12 +32,12 @@ def fetch_teampending_tasks(soft_time_limit=250):
 @celery_app.task()
 def add_profiles_from_teams_task(soft_time_limit=250):
     profile_adder = ProfilesFromTeams()
-    profile_adder.add_profiles_from_teams()
+    profile_adder.update()
 
 
 @celery_app.task(soft_time_limit=500)
 def update_profiles_task():
-    action = UpdateProfile()
+    action = UpdateProfiles()
     action.update()
 
 
@@ -50,4 +50,4 @@ def update_profile_errors():
 @celery_app.task(soft_time_limit=500)
 def results_from_profiles():
     action = ResultsFromProfiles()
-    action.add_results_from_profiles()
+    action.update()

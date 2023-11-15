@@ -4,8 +4,7 @@ import time
 from datetime import date, datetime, timedelta
 from json import JSONDecodeError
 
-from django.db.models import QuerySet
-from django.db.models.base import ModelBase
+from django.db.models import Model, QuerySet
 
 from apps.teams.models import Team
 from apps.zp.fetch import ZPSession
@@ -18,19 +17,18 @@ def create_or_update_model(self, zp_id, api, data_set):
         "zp_id": zp_id,
         api: data_set,  # 'api' is the variable field name
     }
-
     # Unpack kwargs as arguments to get_or_create
     obj, created = self.model.objects.get_or_create(**kwargs)
-
     return obj, created
 
 
 class FetchJsonRecords:
     """
     This adds a new json dataset to the model for each zp_id. It does not update any existing records.
+    This will most likly create a new record each time.
     """
 
-    def __init__(self, api: str, zp_id: int | list | str | QuerySet, model: ModelBase):
+    def __init__(self, api: str, zp_id: int | list | str | QuerySet, model: Model):
         self.zps = ZPSession()
         self.try_count = 0
         self.api = api
@@ -38,9 +36,9 @@ class FetchJsonRecords:
         self.model = model
 
     def fetch(self):
-        if isinstance(self.zp_id, int | list | QuerySet):
+        if isinstance(self.zp_id, int | list | QuerySet):  # queryset must be from .values_list("zp_id", flat=True)
             zp_ids = set(self.zp_id)
-        elif isinstance(self.zp_id, str) and self.zp_id == "all":
+        elif isinstance(self.zp_id, str) and self.zp_id == "all":  # get all the Model objects
             zp_ids = set(self.model.objects.values_list("zp_id", flat=True))
             logging.info(f"zp_id count: {len(zp_ids)}")
         else:
@@ -54,8 +52,10 @@ class FetchJsonRecords:
                     data_set = data_set["data"]
                 if len(data_set) > 0:
                     obj, created = create_or_update_model(self, zp_id, self.api, data_set)
-
-                    logging.info(f"Created new {self.model} entry: {created} for team: {zp_id}")
+                    if created:
+                        logging.info(f"Created new {self.zp_id} : {zp_id}")
+                    else:
+                        logging.info(f"Updated {self.zp_id} : {zp_id}")
                 self.try_count = 0
             except JSONDecodeError as e:
                 self.try_count += 1
@@ -66,7 +66,7 @@ class FetchJsonRecords:
                 logging.warning(f"Failed to get data: {e}")
                 logging.warning(f"Retry get {self.api} number {self.try_count} data: {zp_id}")
             if self.try_count >= 4:
-                logging.error(f"to many retries: {self.api} data: {zp_id}")
+                logging.error(f"to many retries: {self.api} last id: {zp_id}")
                 break
             time.sleep(5 + self.try_count * 5)
 
@@ -91,7 +91,7 @@ class UpdateJsonRecords:
     This adds a UPDATES a json dataset in a model object.
     """
 
-    def __init__(self, api: str, zp_id: int | list | str | QuerySet, model: ModelBase):
+    def __init__(self, api: str, zp_id: int | list | str | QuerySet, model: Model):
         self.zps = ZPSession()
         self.try_count = 0
         self.api = api
@@ -136,7 +136,7 @@ class UpdateJsonRecords:
             try:
                 # TODO: This is an exception for the profile field name
                 api = "profile" if self.api == "profile_profile" else self.api
-                obj, created = self.model.objects.get_or_create(zp_id=zp_id)
+                obj, created = self.model.objects.get_or_create(zp_id=zp_id)  # this must uniquly identify the object
                 current_data = getattr(obj, api) if getattr(obj, api) else []
                 if not created and len(data_set) >= len(current_data):
                     logging.info(f"Updated {self.model} for zp_id: {zp_id}")
@@ -167,7 +167,9 @@ class UpdateJsonRecords:
                 obj.save()
 
 
-class UpdateProfile(UpdateJsonRecords):
+class UpdateProfiles(UpdateJsonRecords):
+    """See also management command and task"""
+
     def __init__(self):
         super().__init__(
             api="profile_profile",
@@ -197,7 +199,9 @@ class UpdateSelected(UpdateJsonRecords):
 
 
 class ProfilesFromTeams:
-    def add_profiles_from_teams(self):
+    """See also management command"""
+
+    def update(self):
         logging.info("Move profiles from teams to profiles table")
         # zp_team_riders = TeamRiders.objects.all()
         zp_team_riders = TeamRiders.objects.order_by("zp_id", "-modified_at").distinct("zp_id")
@@ -210,7 +214,9 @@ class ProfilesFromTeams:
 
 
 class ResultsFromProfiles:
-    def add_results_from_profiles(self, days=60):
+    """See also management command"""
+
+    def update(self, days=60):
         logging.info("Move results from profiles to results table")
         zp_profiles = Profile.objects.all()
         count = zp_profiles.count()
