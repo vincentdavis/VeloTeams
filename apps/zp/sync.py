@@ -116,6 +116,8 @@ class UpdateJsonRecords:
                 data_set = self.zps.get_api(id=zp_id, api=self.api)[self.api]
                 if ["data"] == list(data_set.keys()):
                     data_set = data_set["data"]
+                if "event_date" in data_set:
+                    data_set = sorted(data_set, key=lambda x: x["event_date"], revise=True)
             except JSONDecodeError:
                 self.try_count += 1
                 logging.warning(f"JSONDecodeError: {self.api}, Retry count: {self.try_count} zp_id: {zp_id}")
@@ -170,6 +172,7 @@ class UpdateJsonRecords:
 class UpdateProfiles(UpdateJsonRecords):
     """See also management command and task"""
 
+    # TODO: At some point we will have more then 100 inactive profiles that we keep trying to update. Then we need to add a filter for inactive profiles.
     def __init__(self):
         super().__init__(
             api="profile_profile",
@@ -268,3 +271,23 @@ class ResultsFromProfiles:
                             for c in ["event_date", "zid", "zwid", "tname", "tid", "name", "event_title"]
                         }
                         logging.error(f"result:\n {data}")
+
+
+def sort_profile_json():
+    """See also management command"""
+    logging.info("Sort the profile json field")
+    profiles = Profile.objects.all()
+    for p in profiles:
+        try:
+            if not p.profile:
+                continue
+            if not isinstance(p.profile[0], dict):
+                logging.warning(f"not a valid profile: {p.zp_id}")
+                continue
+            p.profile = sorted(p.profile, key=lambda k: k["event_date"])
+            p.save()
+        except Exception as e:
+            print(p.zp_id)
+            print(p.profile)
+            print(e)
+            continue
