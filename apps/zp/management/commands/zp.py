@@ -34,9 +34,9 @@ class ProfilesUpdate(BaseCommand):
         parser.add_argument("--count", type=int, default=10)
 
     def handle(self, *args, **options):
-        # count = options["count"]
+        count = options["count"]
         action = UpdateProfiles()
-        action.zp_id = Profile.objects.filter(error="").order_by("modified_at").values_list("zp_id", flat=True)
+        action.zp_id = Profile.objects.filter(error="").order_by("modified_at").values_list("zp_id", flat=True)[:count]
         action.update()
 
 
