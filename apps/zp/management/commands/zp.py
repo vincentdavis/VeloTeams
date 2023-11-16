@@ -2,6 +2,7 @@ from django.core.management.base import BaseCommand
 
 from apps.zp.models import Profile
 from apps.zp.sync import FetchTeamResults, ProfilesFromTeams, ResultsFromProfiles, UpdateProfileErrors, UpdateProfiles
+from django.core.management.base import BaseCommand, CommandError
 
 
 class TeamRiders(BaseCommand):
@@ -67,3 +68,30 @@ class ProfilesToResults(BaseCommand):
         days = options["days"]
         f = ResultsFromProfiles(days=days)
         f.update()
+
+
+class Command(BaseCommand):
+    help = 'Dispatches zp sub-commands'
+
+    def add_arguments(self, parser):
+        parser.add_argument('subcommand', type=str, help='Subcommand to run (e.g., TeamRiders, TeamResults)')
+
+    def handle(self, *args, **options):
+        subcommand = options['subcommand']
+
+        if subcommand == 'TeamRiders':
+            cmd = TeamRiders()
+        elif subcommand == 'TeamResults':
+            cmd = TeamResults()
+        elif subcommand == 'ProfilesUpdate':
+            cmd = ProfilesUpdate()
+        elif subcommand == 'ProfilesErrors':
+            cmd = ProfilesErrors()
+        elif subcommand == 'ProfilesTeams':
+            cmd = ProfilesTeams()
+        elif subcommand == 'ProfilesToResults':
+            cmd = ProfilesToResults()
+        else:
+            raise CommandError('Unknown subcommand')
+
+        cmd.handle(*args, **options)
