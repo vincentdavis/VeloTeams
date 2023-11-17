@@ -122,6 +122,22 @@ class Profile(models.Model):
         else:
             return "-"
 
+    @property
+    def other_team_date(self):
+        def recent_events(self):
+            if self.profile:
+                recent = []
+                try:
+                    for event in self.profile[:3]:
+                        tstamp = event.get("event_date")
+                        recent.append(datetime.fromtimestamp(tstamp).date(), event.get("tname"))
+                    return recent
+                except:
+                    return [("-", "-")]
+            else:
+                return [("-", "-")]
+
+
 class ProfileVictims(models.Model):
     """
     - profile_victims: /cache3/profile/{id}_rider_compare_victims.json
