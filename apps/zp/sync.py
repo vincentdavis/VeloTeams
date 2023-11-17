@@ -25,7 +25,7 @@ def create_or_update_model(self, zp_id, api, data_set):
 class FetchJsonRecords:
     """
     This adds a new json dataset to the model for each zp_id. It does not update any existing records.
-    This will most likly create a new record each time.
+    This will most likely create a new record each time.
     """
 
     def __init__(self, api: str, zp_id: int | list | str | QuerySet, model: Model):

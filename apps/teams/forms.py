@@ -8,4 +8,4 @@ class JoinTeamForm(forms.Form):
 class TeamForm(forms.ModelForm):
     class Meta:
         model = Team
-        fields = ['team_name', "zp_id"]
+        fields = ['team_name', "zp_id", "zw_id"]

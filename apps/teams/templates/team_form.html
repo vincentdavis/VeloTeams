@@ -28,10 +28,10 @@
                     <label for="{{ form.zp_id.id_for_label }}" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">{{ form.zp_id.label }}</label>
                     <input type="text" name="{{form.zp_id.name}}" id="{{form.zp_id.id}}" {% if object %} value="{{ form.zp_id.value }}" {% endif %} class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500" placeholder="{{ form.zp_id.placeholder }}" required="">
                 </div>
-                {% comment %} <div class="w-full">
+                 <div class="w-full">
                     <label for="{{ form.zw_id.id_for_label }}" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">{{ form.zw_id.label }}</label>
                     <input type="number" name="{{form.zw_id.name}}" id="{{form.zw_id.id}}" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500" placeholder="{{ form.zw_id.placeholder }}" required="">
-                </div> {% endcomment %}
+                </div> 
               
             <button type="submit" class="inline-flex items-center px-5 py-2.5 mt-4 sm:mt-6 text-sm font-medium text-center text-white bg-primary-700 rounded-lg focus:ring-4 focus:ring-primary-200 dark:focus:ring-primary-900 hover:bg-primary-800">
                 {% if object %}Update{% else %}Create{% endif %} Team

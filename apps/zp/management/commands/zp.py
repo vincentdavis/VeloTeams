@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand
 
 from apps.zp.models import Profile
-from apps.zp.sync import FetchTeamResults, ProfilesFromTeams, ResultsFromProfiles, UpdateProfileErrors, UpdateProfiles
+from apps.zp.sync import FetchTeamRiders, FetchTeamResults, ProfilesFromTeams, ResultsFromProfiles, UpdateProfileErrors, UpdateProfiles
 from django.core.management.base import BaseCommand, CommandError
 
 
@@ -11,7 +11,7 @@ class TeamRiders(BaseCommand):
     def handle(self, *args, **options):
         """Get a list of zp team ids and fetch the member list"""
         self.stdout.write(self.style.SUCCESS("Fetch Team Riders: Start"))
-        updater = FetchTeamResults()
+        updater = FetchTeamRiders()
         updater.fetch()
         self.stdout.write(self.style.SUCCESS("Fetch Team Riders: Done"))
 

@@ -115,8 +115,12 @@ class Profile(models.Model):
                 return recent_teams if len(recent_teams) > 0 else None
             except:
                 return None
-
-
+            
+    @property
+    def other_team_date(self):
+        # TODO : Vincent wokring on
+        return "-"
+    
 class ProfileVictims(models.Model):
     """
     - profile_victims: /cache3/profile/{id}_rider_compare_victims.json
