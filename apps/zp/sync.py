@@ -119,7 +119,7 @@ class UpdateJsonRecords:
                 if self.api in [
                     "profile_profile",
                 ]:
-                    data_set = sorted(data_set, key=lambda x: int(x.get("event_date", 0)), revise=True)
+                    data_set = sorted(data_set, key=lambda x: int(x.get("event_date", 0)), reverse=True)
             except JSONDecodeError:
                 self.try_count += 1
                 logging.warning(f"JSONDecodeError: {self.api}, Retry count: {self.try_count} zp_id: {zp_id}")
@@ -286,10 +286,8 @@ def sort_json_event_date():
             if not isinstance(p.profile[0], dict):
                 logging.warning(f"not a valid profile: {p.zp_id}")
                 continue
-            p.profile = sorted(p.profile, key=lambda x: int(x.get("event_date", 0)), revise=True)
+            p.profile = sorted(p.profile, key=lambda x: int(x.get("event_date", 0)), reverse=True)
             p.save()
         except Exception as e:
-            print(p.zp_id)
-            print(p.profile)
-            print(e)
+            logging.warning(f" issues with: {p.zp_id}\n {e}")
             continue
