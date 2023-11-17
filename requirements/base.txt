@@ -16,7 +16,7 @@ django-celery-beat==2.5.0 # https://github.com/celery/django-celery-beat
 # data stuff
 # ------------------------------------------------------------------------------
 pandas==2.1.3
-django-ninja==0.22.2
+django-ninja==1.0
 
 # Django
 # ------------------------------------------------------------------------------
