@@ -1,4 +1,4 @@
-from datetime import date, datetime, timedelta
+from datetime import datetime
 
 from django.db import models
 from django.utils.html import format_html
@@ -68,6 +68,8 @@ class Profile(models.Model):
                 return f"{self.profile[0].get('name', '-')}"
             except:
                 return "-"
+        else:
+            return "-"
 
     @property
     def url(self):
@@ -79,48 +81,63 @@ class Profile(models.Model):
 
     @property
     def team(self):
+        """
+        Team name from most recent event
+        """
+
         if self.profile:
             try:
                 return f"{self.profile[0].get('tname', '-')}"
             except:
                 return "-"
+        else:
+            return "-"
 
     def last_event(self):
         if self.profile:
             try:
-                event_date = datetime.fromtimestamp(self.profile[0].get("event_date", "-")).date()
-                return event_date
+                tstamp = self.profile[0].get("event_date")
+                return datetime.fromtimestamp(tstamp).date()
             except:
                 return "-"
+        else:
+            return "-"
 
     @property
-    def recent_teams(self):
+    def recent_events(self):
         if self.profile:
+            recent = []
             try:
-                today_45 = date.today() - timedelta(days=45)
-                current_team = self.profile[0].get("tname", "")  # get most recent team name
-                recent_teams = []  # last 3
-                print(f"current_team: {current_team}")
-                for row in self.profile:
-                    tname = row.get("tname", "")
-                    event_date = datetime.fromtimestamp(row.get("event_date", "")).date()
-                    print(f"tname: {tname} event_date: {event_date}")
-                    if tname != current_team:
-                        print(f"tname: {tname} event_date: {event_date}")
-                    if tname != current_team and event_date > today_45:
-                        recent_teams.append((tname, str(event_date)))
-                        # print(f"recent_teams: {recent_teams}")
-                    if len(recent_teams) >= 3 or event_date < today_45:
-                        break
-                return recent_teams if len(recent_teams) > 0 else None
+                for event in self.profile[:3]:
+                    event = {}
+                    tstamp = event.get("event_date")
+                    event['event_date'] =  datetime.fromtimestamp(tstamp).date()
+                    event['event_title'] = event.get("event_title")
+                    event['team'] = event.get("tname")
+                    event['url_event'] = f"{ZP_URL}/events.php?zid={event.get('zid')}"
+                    recent.append(event)
+                return recent
             except:
-                return None
-            
+                return "-"
+        else:
+            return "-"
+
     @property
     def other_team_date(self):
-        # TODO : Vincent wokring on
-        return "-"
-    
+        def recent_events(self):
+            if self.profile:
+                recent = []
+                try:
+                    for event in self.profile[:3]:
+                        tstamp = event.get("event_date")
+                        recent.append(datetime.fromtimestamp(tstamp).date(), event.get("tname"))
+                    return recent
+                except:
+                    return [("-", "-")]
+            else:
+                return [("-", "-")]
+
+
 class ProfileVictims(models.Model):
     """
     - profile_victims: /cache3/profile/{id}_rider_compare_victims.json

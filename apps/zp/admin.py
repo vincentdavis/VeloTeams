@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from veloteams.utils.data_exports import model_to_csv, zp_teamrider_results_to_csv
+from veloteams.utils.data_exports import model_to_csv, teamrider_report_csv
 
 from .models import (
     AllResults,
@@ -49,9 +49,7 @@ def teamriders_to_csv(modeladmin, request, queryset):
     return model_to_csv(modeladmin, request, queryset[0], fields=[], properties=[], json_field="team_riders")
 
 
-teamriders_to_csv.short_description = "Export riders to CSV"
-
-zp_teamrider_results_to_csv.short_description = "Export teamriders to CSV"
+teamrider_report_csv.short_description = "Export teamriders to CSV"
 
 
 # Register your models here.
@@ -59,7 +57,7 @@ zp_teamrider_results_to_csv.short_description = "Export teamriders to CSV"
 class TeamRidersAdmin(admin.ModelAdmin):
     list_display = ["id", "zp_id", "modified_at", "created_at"]
     search_fields = ["zp_id"]
-    actions = [teamriders_to_csv, zp_teamrider_results_to_csv]
+    actions = [teamrider_report_csv]
 
 
 @admin.register(TeamPending)

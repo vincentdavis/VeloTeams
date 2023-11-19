@@ -124,40 +124,35 @@ def zp_teamrider_results_to_csv(modeladmin, request, queryset, latest=3):
     return response
 
 
-# def team_pandas_csv(modeladmin, request, queryset, latest=3):
-def team_pandas_csv(request=None, queryset=None, latest=3):
-    queryset = TeamRiders.objects.filter(zp_id=11991)[:latest]
-    # if queryset.count() > 1:
-    #     messages.warning(request, "This action can only be performed on a single item at a time.")
-    #     return
-
-    response = HttpResponse(content_type="text/csv")
-    response["Content-Disposition"] = "attachment; filename=TeamRidersReport.csv"
-    rider_ids = queryset[0].rider_ids
+def teamriderreport(zp_id: int = None, queryset=None, days: int = 180):
+    if queryset is None:
+        queryset = TeamRiders.objects.filter(zp_id=zp_id).order_by("-created_at")[0]
+    rider_ids = queryset[0].rider_ids  # rider_ids is a property
+    df_rider_ids = pd.DataFrame(rider_ids, columns=["zwid"])
     data = (
-        Results.objects.filter(zwid__in=rider_ids, event_date__gte=date.today() - timedelta(days=60))
-        .order_by("event_date")
+        Results.objects.filter(zwid__in=rider_ids, event_date__gte=date.today() - timedelta(days=180))
+        .order_by("-event_date")
         .values()
     )
     df = pd.DataFrame(data)
-    df = df.sort_values(by="event_date", ascending=False)
-    df_recent = df.groupby("zwid").head(3)
-    # print(df_recent)
-    # return df_recent
-
-    def teamriderreport(zp_id:int=None, queryset=None, days:int = 365):
-        if queryset is None:
-            queryset = TeamRiders.objects.filter(zp_id=zp_id,event_date__gte=date.today() - timedelta(days=days))[:latest]
-        rider_ids = queryset[0].rider_ids
-        data = (
-            Results.objects.filter(zwid__in=rider_ids, event_date__gte=date.today() - timedelta(days=60))
-            .order_by("-event_date")
-            .values()
-        )
-        df = pd.DataFrame(data)
-        df = df.sort_values(by="event_date", ascending=False) #it should already be sorted
-        df_recent = df.groupby("zwid").head(3)
-        # print(df_recent)
-        # return df_recent
+    df = df.sort_values(by="event_date", ascending=False)  # it should already be sorted
+    df_most_recent = df.groupby("zwid").head(1).reset_index()
+    df_recent = df.groupby("zwid").head(3).reset_index().groupby("zwid")["team"].unique().reset_index()
+    df_recent.rename(columns={"team": "recent_teams"}, inplace=True)
+    df = pd.merge(df_most_recent, df_recent, on="zwid", how="left")
+    df = pd.merge(df_rider_ids, df, on="zwid", how="left")
+    df.sort_values("event_date", ascending=False, inplace=True)
+    df["URL"] = df["zwid"].apply(lambda x: f"https://www.zwiftpower.com/profile.php?z={x}")
+    df.reset_index(inplace=True, drop=True)
+    return df[["zwid", "name", "team", "recent_teams", "event_date", "URL"]]
 
 
+def teamrider_report_csv(modeladmin, request, queryset):
+    """This is to be used on the TeamRiders modeladmin page. Select 1"""
+    if queryset.count() > 1:
+        messages.warning(request, "This action can only be performed on a single item at a time.")
+        return
+    response = HttpResponse(content_type="text/csv")
+    response["Content-Disposition"] = "attachment; filename=TeamRidersReport.csv"
+    teamriderreport(queryset=queryset).to_csv(path_or_buf=response, index=False)
+    return response
