@@ -29,7 +29,7 @@ def fetch_teampending_tasks(soft_time_limit=250):
     action.fetch()
 
 
-@celery_app.task()
+@celery_app.task(soft_time_limit=250)
 def add_profiles_from_teams_task(soft_time_limit=250):
     profile_adder = ProfilesFromTeams()
     profile_adder.update()
