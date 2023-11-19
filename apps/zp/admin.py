@@ -75,7 +75,7 @@ class TeamResultsAdmin(admin.ModelAdmin):
 @admin.register(Profile)
 class ProfileAdmin(admin.ModelAdmin):
     list_per_page = 100
-    list_display = ["id", "zp_id", "name", "team", "last_event", "url", "error", "modified_at", "created_at"]
+    list_display = ["id", "zp_id", "name", "team", "status", "last_event", "url", "error", "modified_at", "created_at"]
     list_filter = ["error", "modified_at", "created_at"]
     search_fields = ["zp_id"]
     actions = [update_selected_profiles, profiles_to_csv]
@@ -97,7 +97,7 @@ class ProfileSignupsAdmin(admin.ModelAdmin):
 
 @admin.register(AllResults)
 class AllResultsAdmin(admin.ModelAdmin):
-    list_display = ["id", "modified_at", "created_at"]
+    list_display = ["id", "zp_id", "modified_at", "created_at"]
     list_filter = ["modified_at", "created_at"]
 
 
