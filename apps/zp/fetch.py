@@ -64,7 +64,7 @@ class ZPSession:
                 logging.error(f"Failed to login to ZP and get session: {e}")
                 return None
 
-    def get_api(self, id: int, api: str) -> json:
+    def get_api(self, id: int | None, api: str) -> json:
         """
         the Api(s) to fetch are based on matching the api to the key in the dict
         """
@@ -76,9 +76,9 @@ class ZPSession:
                 profile_profile=f"{self.zp_url}/cache3/profile/{id}_all.json",
                 profile_victims=f"{self.zp_url}/cache3/profile/{id}_rider_compare_victims.json",
                 profile_signups=f"{self.zp_url}/cache3/profile/{id}_signups.json",
-                all_results=f"{self.zp_url}/cache3/lists/0_zwift_event_list_results_3.json",
-                event_results_view=f"{self.zp_url}/cache3/results/{id}_view.json",
-                event_results_zwift=f"{self.zp_url}/cache3/results/{id}_zwift.json",
+                all_results=f"{self.zp_url}/cache3/lists/0_zwift_event_list_results_3.json",  # The main events result list
+                event_results_view=f"{self.zp_url}/cache3/results/{id}_view.json",  # The results of an event
+                event_results_zwift=f"{self.zp_url}/cache3/results/{id}_zwift.json",  # The results of an event
             )
             data_set = dict()
             for k, v in self.apis.items():

@@ -54,8 +54,15 @@ class Profile(models.Model):
     - profile: /api3.php?do=profile&id={user_id}
     """
 
+    default_status = dict(
+        last_event=0,  # Number of days since last event
+        needs_update=True,  # Set for example becuase profile id is in an event result
+        sorted=False,  # is the list of results sorted by date, recent to oldest, background task for this.
+    )
+
     zp_id = models.IntegerField(blank=False, null=False, unique=True, db_index=True)
     profile = models.JSONField(blank=False, null=True)
+    status = models.JSONField(blank=False, null=True, default=default_status)
     error = models.CharField(max_length=255, blank=True, default="")
     modified_at = models.DateTimeField(auto_now=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -111,10 +118,10 @@ class Profile(models.Model):
                 for event in self.profile[:3]:
                     event = {}
                     tstamp = event.get("event_date")
-                    event['event_date'] =  datetime.fromtimestamp(tstamp).date()
-                    event['event_title'] = event.get("event_title")
-                    event['team'] = event.get("tname")
-                    event['url_event'] = f"{ZP_URL}/events.php?zid={event.get('zid')}"
+                    event["event_date"] = datetime.fromtimestamp(tstamp).date()
+                    event["event_title"] = event.get("event_title")
+                    event["team"] = event.get("tname")
+                    event["url_event"] = f"{ZP_URL}/events.php?zid={event.get('zid')}"
                     recent.append(event)
                 return recent
             except:
@@ -165,9 +172,12 @@ class ProfileSignups(models.Model):
 class AllResults(models.Model):
     """
     - /cache3/lists/0_zwift_event_list_results_3.json
+    This is a list of events with results, not the actual results
     """
 
-    results = models.JSONField(blank=False, null=True)
+    event = models.JSONField(blank=False, null=True)
+    zp_id = models.IntegerField(blank=False, null=False, unique=True)
+    errors = models.CharField(max_length=255, blank=True, default="")
     modified_at = models.DateTimeField(auto_now=True)
     created_at = models.DateTimeField(auto_now_add=True)
 

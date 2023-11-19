@@ -8,7 +8,7 @@ from django.db.models import Model, QuerySet
 
 from apps.teams.models import Team
 from apps.zp.fetch import ZPSession
-from apps.zp.models import Profile, Results, TeamPending, TeamResults, TeamRiders
+from apps.zp.models import AllResults, Profile, Results, TeamPending, TeamResults, TeamRiders
 
 
 def create_or_update_model(self, zp_id, api, data_set):
@@ -146,14 +146,20 @@ class UpdateJsonRecords:
                     logging.info(f"Updated {self.model} for zp_id: {zp_id}")
                     setattr(obj, api, data_set)
                     obj.error = ""
+                    if self.api == "profile_profile":
+                        obj.status["sorted"] = True
                     obj.save()
                 elif created and len(data_set) > 0:
                     logging.info(f"Created {self.model} for zp_id: {zp_id}")
                     setattr(obj, api, data_set)
+                    if self.api == "profile_profile":
+                        obj.status["sorted"] = True
                     obj.error = ""
                     obj.save()
                 elif created and len(data_set) == 0:
                     logging.warning(f"Empty data set for zp_id: {zp_id}")
+                    if self.api == "profile_profile":
+                        obj.status["sorted"] = False
                     obj.error = f"Empty data set: {data_set}"
                     obj.save()
                 elif len(data_set) < len(current_data):
@@ -178,7 +184,9 @@ class UpdateProfiles(UpdateJsonRecords):
     def __init__(self):
         super().__init__(
             api="profile_profile",
-            zp_id=Profile.objects.filter(error="").order_by("modified_at").values_list("zp_id", flat=True)[:100],
+            zp_id=Profile.objects.filter(error="", status__needs_update=True)
+            .order_by("modified_at")
+            .values_list("zp_id", flat=True)[:100],
             model=Profile,
         )
 
@@ -203,6 +211,49 @@ class UpdateSelected(UpdateJsonRecords):
         self.try_count = 0
 
 
+class FetchAllResults:
+    """
+    Get list of resent event results from ZP and update the Results table.
+    """
+
+    def __init__(self):
+        self.zps = ZPSession()
+        self.try_count = 0
+        self.api = "all_results"
+        self.model = AllResults
+
+    def fetch(self):
+        # Get the data
+        try:
+            data_set = self.zps.get_api(id=None, api=self.api)[self.api]
+            data_set = data_set["data"]
+        except JSONDecodeError as e:
+            logging.error(f"JSONDecodeError: {self.api} \n{e}")
+            return None
+        except Exception as e:
+            logging.error(f"Unknown getting: {self.api} \n{e}")
+            return None
+
+        # Add the data to the model
+        for event in data_set:
+            try:
+                obj, created = self.model.objects.get_or_create(zp_id=event["zid"])
+                if created:
+                    logging.info(f"Created new {self.model} for zp_id: {event['zid']}")
+                    obj.event = event
+                    obj.zp_id = event["zid"]
+                    obj.save()
+                else:
+                    logging.info(f"Already have {self.model} for zp_id: {event['zid']}")
+            except Exception as e:
+                logging.error(f"Unknown creating: {self.api} \n{e}")
+
+
+#############################################################
+#### Inter table data migrations and Table field updates ####
+#############################################################
+
+
 class ProfilesFromTeams:
     """See also management command"""
 
@@ -214,12 +265,15 @@ class ProfilesFromTeams:
             logging.info(f"Adding profiles from team: {team.zp_id}")
             for rider in team.team_riders:
                 logging.info(f"Get or creat zp Profile: {rider['zwid']}")
-                got, created = Profile.objects.get_or_create(zp_id=int(rider["zwid"]))
+                obj, created = Profile.objects.get_or_create(zp_id=int(rider["zwid"]))
                 logging.info(f"Created? {created} rider Profile{rider['zwid']}")
 
 
 class ResultsFromProfiles:
-    """See also management command"""
+    """
+    Migrate results from profiles to Results Table
+    See also management command
+    """
 
     def update(self, days=60):
         logging.info("Move results from profiles to results table")
@@ -238,7 +292,7 @@ class ResultsFromProfiles:
                         obj, created = Results.objects.get_or_create(
                             zp_id=int(result["zid"]), zwid=profile.zp_id, defaults={"event_date": event_date}
                         )
-                        if created:
+                        if created or not obj.tid:
                             logging.info(f"Created new result: (zid, zwid): {result['zid']}, {result['zwid']}")
                             obj.team = result.get("tname", "")
                             obj.tid = result.get("tid", "")
@@ -275,10 +329,32 @@ class ResultsFromProfiles:
                         logging.error(f"result:\n {data}")
 
 
+class SetLastEventProfile:
+    """
+    Some profiles are very inactive so we want to update the profile less often.
+    There is a Profile model prperty but it is faster if we set a filed that is the num,ber of days since last event.
+    Then we can update less often.
+    """
+
+    def update(self):
+        logging.info("Set days since last event")
+        zp_profiles = Profile.objects.all()
+        for profile in zp_profiles:
+            if profile.profile:
+                try:
+                    profile.status["last_event"] = (
+                        date.today() - datetime.fromtimestamp(profile.profile[0]["event_date"]).date()
+                    ).days
+                    profile.save()
+                except Exception as e:
+                    logging.warning(f"Failed to set last event: {e}")
+                    continue
+
+
 def sort_json_event_date():
     """See also management command"""
     logging.info("Sort the profile json field")
-    profiles = Profile.objects.all()
+    profiles = Profile.objects.filter(status__sorted=False)
     for p in profiles:
         try:
             if not p.profile:
@@ -287,6 +363,7 @@ def sort_json_event_date():
                 logging.warning(f"not a valid profile: {p.zp_id}")
                 continue
             p.profile = sorted(p.profile, key=lambda x: int(x.get("event_date", 0)), reverse=True)
+            p.status["sorted"] = True
             p.save()
         except Exception as e:
             logging.warning(f" issues with: {p.zp_id}\n {e}")

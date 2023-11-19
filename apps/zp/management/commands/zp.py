@@ -1,8 +1,16 @@
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
 
 from apps.zp.models import Profile
-from apps.zp.sync import FetchTeamRiders, FetchTeamResults, ProfilesFromTeams, ResultsFromProfiles, UpdateProfileErrors, UpdateProfiles
-from django.core.management.base import BaseCommand, CommandError
+from apps.zp.sync import (
+    FetchAllResults,
+    FetchTeamResults,
+    FetchTeamRiders,
+    ProfilesFromTeams,
+    ResultsFromProfiles,
+    SetLastEventProfile,
+    UpdateProfileErrors,
+    UpdateProfiles, sort_json_event_date,
+)
 
 
 class TeamRiders(BaseCommand):
@@ -70,28 +78,57 @@ class ProfilesToResults(BaseCommand):
         f.update()
 
 
-class Command(BaseCommand):
-    help = 'Dispatches zp sub-commands'
-
-    def add_arguments(self, parser):
-        parser.add_argument('subcommand', type=str, help='Subcommand to run (e.g., TeamRiders, TeamResults)')
+class AllResultsFetch(BaseCommand):
+    help = "Fetch newest all results"
 
     def handle(self, *args, **options):
-        subcommand = options['subcommand']
+        """Get a list of zp team ids and fetch the member list"""
+        f = FetchAllResults()
+        f.fetch()
 
-        if subcommand == 'TeamRiders':
+
+class LastEventProfileSet(BaseCommand):
+    help = "Set last event for profiles"
+
+    def handle(self, *args, **options):
+        action = SetLastEventProfile()
+        action.update()
+
+class SortJsonEventDate(BaseCommand):
+    help = "Sort event_date in json field"
+
+    def handle(self, *args, **options):
+        sort_json_event_date()
+
+
+class Command(BaseCommand):
+    help = "Dispatches zp sub-commands"
+
+    def add_arguments(self, parser):
+        parser.add_argument("subcommand", type=str, help="Subcommand to run (e.g., TeamRiders, TeamResults)")
+
+    def handle(self, *args, **options):
+        subcommand = options["subcommand"]
+
+        if subcommand == "TeamRiders":
             cmd = TeamRiders()
-        elif subcommand == 'TeamResults':
+        elif subcommand == "TeamResults":
             cmd = TeamResults()
-        elif subcommand == 'ProfilesUpdate':
+        elif subcommand == "ProfilesUpdate":
             cmd = ProfilesUpdate()
-        elif subcommand == 'ProfilesErrors':
+        elif subcommand == "ProfilesErrors":
             cmd = ProfilesErrors()
-        elif subcommand == 'ProfilesTeams':
+        elif subcommand == "ProfilesTeams":
             cmd = ProfilesTeams()
-        elif subcommand == 'ProfilesToResults':
+        elif subcommand == "ProfilesToResults":
             cmd = ProfilesToResults()
+        elif subcommand == "AllResultsFetch":
+            cmd = AllResultsFetch()
+        elif subcommand == "LastEventProfileSet":
+            cmd = LastEventProfileSet()
+        elif subcommand == "SortJsonEventDate":
+            cmd = SortJsonEventDate()
         else:
-            raise CommandError('Unknown subcommand')
+            raise CommandError("Unknown subcommand")
 
         cmd.handle(*args, **options)
