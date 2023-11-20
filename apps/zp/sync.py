@@ -202,6 +202,20 @@ class UpdateProfileErrors(UpdateJsonRecords):
         )
 
 
+def update_last_event(self):
+    logging.info(f"Review {len(self.zp_ids)} profiles")
+    for zp_id in self.zp_ids:
+        try:
+            obj = Profile.objects.get(zp_id=zp_id)
+            obj.status["last_event"] = (
+                datetime.today().date() - datetime.fromtimestamp(obj.profile[0]["event_date"]).date()
+            ).days
+            obj.save()
+        except Exception as e:
+            logging.error(f"Failed to update last event: {zp_id}\n {e}")
+            continue
+
+
 class UpdateSelected(UpdateJsonRecords):
     def __init__(self, api, zp_id, model):
         self.api = api

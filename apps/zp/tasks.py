@@ -55,7 +55,7 @@ def fetch_allresults():
     action.fetch()
 
 
-@celery_app.task(soft_time_limit=500)
+@celery_app.task(soft_time_limit=600)
 def results_from_profiles():
     action = ResultsFromProfiles()
     action.update()
