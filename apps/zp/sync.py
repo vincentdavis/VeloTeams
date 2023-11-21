@@ -4,11 +4,18 @@ import time
 from datetime import date, datetime, timedelta
 from json import JSONDecodeError
 
-from django.db.models import Model, QuerySet
+from django.db.models import Model, Q, QuerySet
 
 from apps.teams.models import Team
 from apps.zp.fetch import ZPSession
-from apps.zp.models import AllResults, Profile, Results, TeamPending, TeamResults, TeamRiders
+from apps.zp.models import (
+    AllResults,
+    Profile,
+    Results,
+    TeamPending,
+    TeamResults,
+    TeamRiders,
+)
 
 
 def create_or_update_model(self, zp_id, api, data_set):
@@ -382,3 +389,89 @@ def sort_json_event_date():
         except Exception as e:
             logging.warning(f" issues with: {p.zp_id}\n {e}")
             continue
+
+
+class FetchResults:
+    def __init__(self):
+        self.zps = ZPSession()
+        self.try_count = 0
+        self.api_view = "event_results_view"
+        self.api_zwift = "event_results_zwift"
+        self.model = Results
+
+    def fetch(self):
+        """
+        Create events from results
+        """
+        logging.info("Create or update results")
+        # Get all the unique zp_ids from the results table
+        result_zp_ids = Results.objects.values_list("zp_id", flat=True).distinct()
+        # Get all the unique zp_ids from the AllResults with missing data.
+        all_results_zp_ids = AllResults.objects.filter.values_list("zp_id", flat=True).distinct()
+        # TODO Maybe add update data for events for 24hours
+        all_results_missing_data_zp_ids = (
+            AllResults.objects.filter(Q(zp_view__isnull=True) | Q(zp_zwift__isnull=True))
+            .values_list("zp_id", flat=True)
+            .distinct()
+        )
+        # List of zp_ids in Results but not in AllResults, "Events"
+        unique_zp_ids = (set(result_zp_ids) - set(all_results_zp_ids)) | set(all_results_missing_data_zp_ids)
+
+        count = 0
+        for zp_id in unique_zp_ids:
+            if count >= 4:
+                logging.error(f"to many retries: {zp_id}")
+                break
+            try:
+                obj, created = AllResults.objects.get_or_create(zp_id=zp_id.zp_id)
+                if created:
+                    logging.info(f"Created new event: {zp_id}")
+                    try:
+                        data_set = self.zps.get_api(id=zp_id, api=self.api_view)[self.api_view]
+                        data_set = data_set["data"]
+                        obj.view = data_set
+                        count = 0
+                    except Exception as e:
+                        logging.warning(f"Failed to get view data: {zp_id}\n {e}")
+                        obj.view = None
+                        count += 1
+                    try:
+                        data_set = self.zps.get_api(id=zp_id, api=self.api_zwift)[self.api_zwift]
+                        data_set = data_set["data"]
+                        obj.zwift = data_set
+                        count = 0
+                    except Exception as e:
+                        logging.warning(f"Failed to get zwift data: {zp_id}\n {e}")
+                        obj.zwift = None
+                        count += 1
+                    obj.save()
+                elif not created and not obj.view and not obj.zwift:
+                    logging.info(f"Already have event: {zp_id}")
+                    if not obj.view:
+                        try:
+                            data_set = self.zps.get_api(id=zp_id, api=self.api_view)[self.api_view]
+                            data_set = data_set["data"]
+                            obj.view = data_set
+                            count = 0
+                        except Exception as e:
+                            logging.warning(f"Failed to get view data: {zp_id}\n {e}")
+                            obj.view = None
+                            count += 1
+                    if not obj.zwift:
+                        try:
+                            data_set = self.zps.get_api(id=zp_id, api=self.api_zwift)[self.api_zwift]
+                            data_set = data_set["data"]
+                            obj.zwift = data_set
+                            count = 0
+                        except Exception as e:
+                            logging.warning(f"Failed to get zwift data: {zp_id}\n {e}")
+                            obj.zwift = None
+                            count += 1
+                    obj.save()
+            except Exception as e:
+                logging.error(f"Failed to get or create event: {e}")
+                count += 1
+                continue
+            logging.info(f"Created or updated event: {zp_id}")
+            time.sleep(3 + count * 5)
+        logging.info(f"Created or updated events: {len(unique_zp_ids)}")

@@ -7,8 +7,6 @@ from .models import (
     EventResultsView,
     EventResultsZwift,
     Profile,
-    ProfileSignups,
-    ProfileVictims,
     Results,
     TeamPending,
     TeamResults,
@@ -79,20 +77,6 @@ class ProfileAdmin(admin.ModelAdmin):
     list_filter = ["error", "modified_at", "created_at"]
     search_fields = ["zp_id"]
     actions = [update_selected_profiles, profiles_to_csv]
-
-
-@admin.register(ProfileVictims)
-class ProfileVictimsAdmin(admin.ModelAdmin):
-    list_display = ["id", "zp_id", "error", "modified_at", "created_at"]
-    list_filter = ["error", "modified_at", "created_at"]
-    search_fields = ["zp_id"]
-
-
-@admin.register(ProfileSignups)
-class ProfileSignupsAdmin(admin.ModelAdmin):
-    list_display = ["id", "zp_id", "error", "modified_at", "created_at"]
-    list_filter = ["error", "modified_at", "created_at"]
-    search_fields = ["zp_id"]
 
 
 @admin.register(AllResults)

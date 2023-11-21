@@ -54,11 +54,12 @@ class Profile(models.Model):
     - profile: /api3.php?do=profile&id={user_id}
     """
 
-    default_status = dict(
-        last_event=0,  # Number of days since last event
-        needs_update=True,  # Set for example becuase profile id is in an event result
-        sorted=False,  # is the list of results sorted by date, recent to oldest, background task for this.
-    )
+    def default_status(self):
+        return {
+            "last_event": 0,  # Number of days since last event
+            "needs_update": True,  # Set for example becuase profile id is in an event result
+            "sorted": False,  # is the list of results sorted by date, recent to oldest, background task for this.
+        }
 
     zp_id = models.IntegerField(blank=False, null=False, unique=True, db_index=True)
     profile = models.JSONField(blank=False, null=True)
@@ -145,38 +146,16 @@ class Profile(models.Model):
                 return [("-", "-")]
 
 
-class ProfileVictims(models.Model):
-    """
-    - profile_victims: /cache3/profile/{id}_rider_compare_victims.json
-    """
-
-    zp_id = models.IntegerField(blank=False, null=False)
-    victims = models.JSONField(blank=False, null=True)
-    error = models.CharField(max_length=255, blank=True, default="")
-    modified_at = models.DateTimeField(auto_now=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-
-class ProfileSignups(models.Model):
-    """
-    - profile_signups: /cache3/profile/{id}_signups.json
-    """
-
-    zp_id = models.IntegerField(blank=False, null=False)
-    signups = models.JSONField(blank=False, null=True)
-    error = models.CharField(max_length=255, blank=True, default="")
-    modified_at = models.DateTimeField(auto_now=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-
 class AllResults(models.Model):
     """
     - /cache3/lists/0_zwift_event_list_results_3.json
     This is a list of events with results, not the actual results
     """
 
-    event = models.JSONField(blank=False, null=True)
     zp_id = models.IntegerField(blank=False, null=False, unique=True)
+    event = models.JSONField(blank=False, null=True)  # all_results api row
+    view = models.JSONField(blank=False, null=True)  # event_results_view api row
+    zwift = models.JSONField(blank=False, null=True)  # event_results_zwift api row
     errors = models.CharField(max_length=255, blank=True, default="")
     modified_at = models.DateTimeField(auto_now=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -232,7 +211,9 @@ class Results(models.Model):
     team = models.CharField(max_length=255, blank=True, default="")  # tname
     name = models.CharField(max_length=255, blank=True, default="")  # name
     event_title = models.CharField(max_length=255, blank=True, default="")  # event_title
-    results = models.JSONField(blank=False, null=True)
+    results = models.JSONField(blank=False, null=True)  # This is the data from the rider Profile
+    zp_view = models.JSONField(blank=False, null=True)  # Data from the view api
+    zp_zwift = models.JSONField(blank=False, null=True)  # data from the zwift api
     modified_at = models.DateTimeField(auto_now=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
