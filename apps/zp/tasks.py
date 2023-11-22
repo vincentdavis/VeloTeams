@@ -2,6 +2,7 @@ from config import celery_app
 
 from .sync import (
     FetchAllResults,
+    FetchResults,
     FetchTeamPending,
     FetchTeamResults,
     FetchTeamRiders,
@@ -65,3 +66,9 @@ def results_from_profiles():
 def lastEventprofileset():
     action = SetLastEventProfile()
     action.update()
+
+
+@celery_app.task(soft_time_limit=500)
+def fetch_results_data():
+    action = FetchResults()
+    action.fetch()
