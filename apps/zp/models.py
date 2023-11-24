@@ -153,9 +153,11 @@ class AllResults(models.Model):
     """
 
     zp_id = models.IntegerField(blank=False, null=False, unique=True)
+    event_date = models.DateField(blank=False, null=True)  # event_date from the history json
     event = models.JSONField(blank=False, null=True)  # all_results api row
     view = models.JSONField(blank=False, null=True)  # event_results_view api row
     zwift = models.JSONField(blank=False, null=True)  # event_results_zwift api row
+    race_history = models.JSONField(blank=False, null=True)  # data from the event_race_history api
     errors = models.CharField(max_length=255, blank=True, default="")
     modified_at = models.DateTimeField(auto_now=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -214,6 +216,7 @@ class Results(models.Model):
     results = models.JSONField(blank=False, null=True)  # This is the data from the rider Profile
     zp_view = models.JSONField(blank=False, null=True)  # Data from the view api
     zp_zwift = models.JSONField(blank=False, null=True)  # data from the zwift api
+    race_history = models.JSONField(blank=False, null=True)  # data from the event_race_history api
     modified_at = models.DateTimeField(auto_now=True)
     created_at = models.DateTimeField(auto_now_add=True)
 

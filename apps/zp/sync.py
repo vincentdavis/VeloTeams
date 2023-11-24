@@ -397,6 +397,7 @@ class FetchResults:
         self.try_count = 0
         self.api_view = "event_results_view"
         self.api_zwift = "event_results_zwift"
+        self.api_history = "event_race_history"
         self.model = Results
 
     def fetch(self):
@@ -404,75 +405,56 @@ class FetchResults:
         Create events from results
         """
         logging.info("Create or update results")
-        # Get all the unique zp_ids from the results table
-        result_zp_ids = Results.objects.values_list("zp_id", flat=True).distinct()
-        # Get all the unique zp_ids from the AllResults with missing data.
-        all_results_zp_ids = AllResults.objects.filter.values_list("zp_id", flat=True).distinct()
-        # TODO Maybe add update data for events for 24hours
-        all_results_missing_data_zp_ids = (
-            AllResults.objects.filter(Q(zp_view__isnull=True) | Q(zp_zwift__isnull=True))
+        # These are the results that need updating
+        result_zp_ids = (
+            Results.objects.filter(Q(zp_view__isnull=True) | Q(zp_zwift__isnull=True) | Q(race_history__isnull=True))
             .values_list("zp_id", flat=True)
             .distinct()
         )
-        # List of zp_ids in Results but not in AllResults, "Events"
-        unique_zp_ids = (set(result_zp_ids) - set(all_results_zp_ids)) | set(all_results_missing_data_zp_ids)
+        # AllResults missing history data whiich has the date.
+        all_results_zp_ids = (
+            AllResults.objects.filter(race_history__isnull=False).values_list("zp_id", flat=True).distinct()
+        )
+        try:
+            history = self.zps.get_api(id=None, api=self.api_history)[self.api_history]["data"]
+            history_zp_ids = {row["zid"] for row in history}
+            history = {row["zid"]: row for row in history}
+        except Exception as e:
+            logging.error(f"Failed to get history:\n{e}")
+            raise
+        # first lets get all the uknown events.from the history
+        unknown_events = history_zp_ids - set(all_results_zp_ids)
+        logging.info(f"history_zp_ids, - all_results_zp_ids: {len(history_zp_ids)} - {len(all_results_zp_ids)}")
+        for zp_id in history_zp_ids:
+            obj, created = AllResults.objects.get_or_create(zp_id=zp_id)
+            obj.event_date = datetime.fromtimestamp(history[zp_id]["tm"]).date()
+            obj.race_history = history[zp_id]
+            obj.save()
 
-        error_count = 0
-        event_count = 0
-        for i, zp_id in unique_zp_ids:
-            event_count += 1
-            if error_count >= 4 or event_count >= 100:
-                logging.error(f"to many retries: {zp_id}")
+        # Now we have made all unkown events we can get the results (view and zwift).
+        # We need to get the results for all the events that are missing data.
+        all_results_missing_data_zp_ids = AllResults.objects.filter(
+            (Q(view__isnull=True) | Q(zwift__isnull=True)) & Q(event_date__gte=date.today() - timedelta(days=365))
+        )
+        errors = 0
+        for count, result in enumerate(all_results_missing_data_zp_ids):
+            if errors >= 4 or count >= 100:
                 break
-            try:
-                obj, created = AllResults.objects.get_or_create(zp_id=zp_id.zp_id)
-
-                if created or (not obj.view and not obj.zwift):
-                    logging.info(f"Created new event: {zp_id}")
-                    try:
-                        data_view = self.zps.get_api(id=zp_id, api=self.api_view)[self.api_view]["data"]
-                        obj.view = data_view
-                        error_count = 0
-                    except Exception as e:
-                        logging.warning(f"Failed to get view data: {zp_id}\n {e}")
-                        obj.view = None
-                        error_count += 1
-                    try:
-                        data_zwift = self.zps.get_api(id=zp_id, api=self.api_zwift)[self.api_zwift]["data"]
-                        obj.zwift = data_zwift
-                        error_count = 0
-                    except Exception as e:
-                        logging.warning(f"Failed to get zwift data: {zp_id}\n {e}")
-                        obj.zwift = None
-                        error_count += 1
-                    obj.save()
-            except Exception as e:
-                logging.error(f"Failed to get or create event: {e}")
-                error_count += 1
-                continue
-            try:
-                # The view and zwift data are all for 1 event but nuktiple zwid's, we need to transform the list or
-                # results to a dict with the zwid as the key.
-                dict_view = {row["zwid"]: row for row in obj.view}
-                dict_zwift = {row["zwid"]: row for row in obj.zwift}
-                set_zwids = set(dict_view) | set(dict_zwift)
-
-                # Update results now.
-                logging.info(f"Update Results from: {zp_id}")
-                for zwid in set_zwids:
-                    try:
-                        obj, created = Results.objects.get_or_create(zp_id=zp_id, zwid=zwid)
-                        obj.event_data = datetime.fromtimestamp(dict_view.get(zwid, None).get("event_date", "")).date()
-                        obj.tid = dict_view.get(zwid, None).get("tid", "")
-                        obj.team = dict_view.get(zwid, None).get("tname", "")
-                        obj.name = dict_view.get(zwid, None).get("name", "")
-                        obj.zp_view = dict_view.get(zwid, None)
-                        obj.zp_zwift = dict_zwift.get(zwid, None)
-                        obj.save()
-                    except Exception as e:
-                        logging.error(f"Failed to add zwift and view to: {zp_id}: {zwid}:\n{e}")
-            except Exception as e:
-                logging.error(f"Failed add Result(zwift, view) for event: {zp_id}:\n{e}")
-            logging.info(f"Created or updated event: {zp_id}")
-            time.sleep(3 + error_count * 5)
-        logging.info(f"Created or updated events: {event_count}")
+            if result.view is None:
+                try:
+                    data_view = self.zps.get_api(id=result.zp_id, api=self.api_view)[self.api_view]["data"]
+                    result.view = data_view
+                    errors = 0
+                except Exception as e:
+                    logging.warning(f"Failed to get view data: {result.zp_id}\n {e}")
+                    errors += 1
+            if result.zwift is None:
+                try:
+                    data_zwift = self.zps.get_api(id=result.zp_id, api=self.api_zwift)[self.api_zwift]["data"]
+                    result.zwift = data_zwift
+                    errors = 0
+                except Exception as e:
+                    logging.warning(f"Failed to get zwift data: {result.zp_id}\n {e}")
+                    errors += 1
+            result.save()
+            time.sleep(5 + self.try_count * 5)
