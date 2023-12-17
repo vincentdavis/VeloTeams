@@ -91,6 +91,7 @@ THIRD_PARTY_APPS = [
     "allauth.socialaccount",
     "allauth.socialaccount.providers.strava",
     "django_celery_beat",
+    "fontawesomefree",
     "simple_history",
 ]
 
