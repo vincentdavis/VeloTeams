@@ -85,7 +85,7 @@ class Profile(models.Model):
         https://zwiftpower.com/events.php?zid=3896239
         """
         u = f"{ZP_URL}/profile.php?z={self.zp_id}"
-        return format_html("<a href='{url}'>{url}</a>", url=u)
+        return format_html("<a href='{url}'>View Profile</a>", url=u)
 
     @property
     def team(self):

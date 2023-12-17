@@ -2,11 +2,14 @@ from django import forms
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import IntegrityError, transaction
-from django.db.models import Q
+from django.db.models import Q, F
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
 from django.views import View
+from django.core.paginator import Paginator
+from django.db.models import Q
+from django.db.models.expressions import RawSQL
 from django.http import HttpResponse
 import pandas as pd
 from django.shortcuts import render
@@ -202,8 +205,16 @@ class TeamProfileView(DetailView):
 
 
 class TeamAuditReportView(View):
-    def get_report_data(self, team_id):
-        # Fetch the latest team riders
+    def get_report_data(self, team_id, search=None, sort=None, page=1):
+        """
+        Fetches report data based on team_id, with optional search, sort, and pagination.
+
+        :param team_id: ID of the team.
+        :param search: Optional search term for filtering by team name.
+        :param sort: Optional sort order.
+        :param page: Page number for pagination.
+        :return: A page of sorted and/or filtered report data.
+        """
         try:
             print(team_id)
             team_riders = TeamRiders.objects.filter(zp_id=team_id).latest('modified_at')
@@ -213,36 +224,40 @@ class TeamAuditReportView(View):
 
         # Extract profile zwids
         profile_ids = [rider.get('zwid') for rider in team_riders.team_riders if rider.get('zwid')]
+
         # Fetch corresponding profiles
-        profiles = Profile.objects.filter(zp_id__in=profile_ids)
+        print("profile_ids", profile_ids)
+        queryset = Profile.objects.filter(zp_id__in=profile_ids)
 
-        # Prepare data for report
-        report_data = []
-        for profile in profiles:
-            profile_data = profile.profile
-            try:
-                current_team_name = profile.team
-                report_row = {
-                    'name': profile.name,
-                    'team': current_team_name,
-                    'other_team_date': profile.other_team_date,
-                    'url': profile.url,
-                    'last_event': profile.last_event,
-                    'modified_date': profile.modified_at,
-                    'errors': profile_data[0].get('errors', '')
-                }
-                report_data.append(report_row)
-            except Exception as e:
-                print(e)
-                continue
-        return report_data, None
+        # Annotate to extract the 'name' from the first element of the JSON array
+        queryset = queryset.annotate(
+            profile__name=F('profile__0__name'),
+            profile__tname=F('profile__0__tname'),
+        )
 
+        if search:
+            queryset = queryset.filter(profile__icontains=search)
+        if sort:
+            queryset = queryset.order_by(sort)
+
+        paginator = Paginator(queryset, 10)  # 10 profiles per page
+        return paginator.get_page(page), None
+        
     def get(self, request, team_id):
-        report_data, error = self.get_report_data(team_id)
+        search = request.GET.get('search', '')
+        sort = request.GET.get('sort', '')
+        page = request.GET.get('page', 1)
+        print(search, sort, page)
+        report_data, error = self.get_report_data(team_id, search=search, sort=sort, page=page)
         if error:
             return render(request, 'error.html', {'message': error})
 
-        return render(request, 'team_audit_report.html', {'report_data': report_data})
+        context = {
+            'report_data': report_data,
+            'search': search,
+            'sort': sort
+        }
+        return render(request, 'team_audit_report.html', context)
 
     def post(self, request, team_id):
         action = request.POST.get('action', '')
