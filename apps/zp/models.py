@@ -16,6 +16,7 @@ class TeamRiders(models.Model):
     team_riders = models.JSONField(blank=False)
     modified_at = models.DateTimeField(auto_now=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
     # history = HistoricalRecords()
 
     @property
@@ -131,18 +132,19 @@ class Profile(models.Model):
 
     @property
     def other_team_date(self):
-        def recent_events(self):
-            if self.profile:
-                recent = []
-                try:
-                    for event in self.profile[:3]:
-                        tstamp = event.get("event_date")
-                        recent.append(datetime.fromtimestamp(tstamp).date(), event.get("tname"))
-                    return recent
-                except:
-                    return [("-", "-")]
-            else:
-                return [("-", "-")]
+        if self.profile:
+            recent = []
+            try:
+                for event in self.profile[:3]:
+                    tstamp = event.get("event_date")
+                    recent.append((datetime.fromtimestamp(tstamp).date(), event.get("tname", "No Team")))
+                return recent
+            except Exception as e:
+                print(e)
+
+                return [("ERROR", "ERROR")]
+        else:
+            return [("NA", "NA")]
 
 
 class AllResults(models.Model):
