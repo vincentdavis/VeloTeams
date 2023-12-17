@@ -216,7 +216,6 @@ class TeamAuditReportView(View):
         :return: A page of sorted and/or filtered report data.
         """
         try:
-            print(team_id)
             team_riders = TeamRiders.objects.filter(zp_id=team_id).latest('modified_at')
         except TeamRiders.DoesNotExist:
             # Handle the case where no team riders are found
@@ -226,7 +225,6 @@ class TeamAuditReportView(View):
         profile_ids = [rider.get('zwid') for rider in team_riders.team_riders if rider.get('zwid')]
 
         # Fetch corresponding profiles
-        print("profile_ids", profile_ids)
         queryset = Profile.objects.filter(zp_id__in=profile_ids)
 
         # Annotate to extract the 'name' from the first element of the JSON array
@@ -242,12 +240,11 @@ class TeamAuditReportView(View):
 
         paginator = Paginator(queryset, 10)  # 10 profiles per page
         return paginator.get_page(page), None
-        
+
     def get(self, request, team_id):
         search = request.GET.get('search', '')
         sort = request.GET.get('sort', '')
         page = request.GET.get('page', 1)
-        print(search, sort, page)
         report_data, error = self.get_report_data(team_id, search=search, sort=sort, page=page)
         if error:
             return render(request, 'error.html', {'message': error})
