@@ -20,10 +20,9 @@ class TeamRiders(models.Model):
 
     @property
     def rider_ids(self):
-        try:
+        if isinstance(self.team_riders, list):
             return {rider.get("zwid", "") for rider in self.team_riders}
-        except:
-            return None
+        return None
 
 
 class TeamPending(models.Model):
@@ -73,11 +72,11 @@ class Profile(models.Model):
     def name(self):
         if self.profile:
             try:
-                return f"{self.profile[0].get('name', '-')}"
+                return f"{self.profile[0].get('name', 'BLANK')}"
             except:
-                return "-"
+                return "EXCEPTION"
         else:
-            return "-"
+            return "NA"
 
     @property
     def url(self):
@@ -95,11 +94,11 @@ class Profile(models.Model):
 
         if self.profile:
             try:
-                return f"{self.profile[0].get('tname', '-')}"
+                return f"{self.profile[0].get('tname', 'BLANK')}"
             except:
-                return "-"
+                return "EXCEPTION"
         else:
-            return "-"
+            return "NA"
 
     def last_event(self):
         if self.profile:
