@@ -4,11 +4,18 @@ import time
 from datetime import date, datetime, timedelta
 from json import JSONDecodeError
 
-from django.db.models import Model, QuerySet
+from django.db.models import Model, Q, QuerySet
 
 from apps.teams.models import Team
 from apps.zp.fetch import ZPSession
-from apps.zp.models import Profile, Results, TeamPending, TeamResults, TeamRiders
+from apps.zp.models import (
+    AllResults,
+    Profile,
+    Results,
+    TeamPending,
+    TeamResults,
+    TeamRiders,
+)
 
 
 def create_or_update_model(self, zp_id, api, data_set):
@@ -146,14 +153,20 @@ class UpdateJsonRecords:
                     logging.info(f"Updated {self.model} for zp_id: {zp_id}")
                     setattr(obj, api, data_set)
                     obj.error = ""
+                    if self.api == "profile_profile":
+                        obj.status["sorted"] = True
                     obj.save()
                 elif created and len(data_set) > 0:
                     logging.info(f"Created {self.model} for zp_id: {zp_id}")
                     setattr(obj, api, data_set)
+                    if self.api == "profile_profile":
+                        obj.status["sorted"] = True
                     obj.error = ""
                     obj.save()
                 elif created and len(data_set) == 0:
                     logging.warning(f"Empty data set for zp_id: {zp_id}")
+                    if self.api == "profile_profile":
+                        obj.status["sorted"] = False
                     obj.error = f"Empty data set: {data_set}"
                     obj.save()
                 elif len(data_set) < len(current_data):
@@ -178,7 +191,9 @@ class UpdateProfiles(UpdateJsonRecords):
     def __init__(self):
         super().__init__(
             api="profile_profile",
-            zp_id=Profile.objects.filter(error="").order_by("modified_at").values_list("zp_id", flat=True)[:100],
+            zp_id=Profile.objects.filter(error="", status__needs_update=True)
+            .order_by("modified_at")
+            .values_list("zp_id", flat=True)[:100],
             model=Profile,
         )
 
@@ -194,6 +209,20 @@ class UpdateProfileErrors(UpdateJsonRecords):
         )
 
 
+def update_last_event(self):
+    logging.info(f"Review {len(self.zp_ids)} profiles")
+    for zp_id in self.zp_ids:
+        try:
+            obj = Profile.objects.get(zp_id=zp_id)
+            obj.status["last_event"] = (
+                datetime.today().date() - datetime.fromtimestamp(obj.profile[0]["event_date"]).date()
+            ).days
+            obj.save()
+        except Exception as e:
+            logging.error(f"Failed to update last event: {zp_id}\n {e}")
+            continue
+
+
 class UpdateSelected(UpdateJsonRecords):
     def __init__(self, api, zp_id, model):
         self.api = api
@@ -201,6 +230,49 @@ class UpdateSelected(UpdateJsonRecords):
         self.model = Profile
         self.zps = ZPSession()
         self.try_count = 0
+
+
+class FetchAllResults:
+    """
+    Get list of resent event results from ZP and update the Results table.
+    """
+
+    def __init__(self):
+        self.zps = ZPSession()
+        self.try_count = 0
+        self.api = "all_results"
+        self.model = AllResults
+
+    def fetch(self):
+        # Get the data
+        try:
+            data_set = self.zps.get_api(id=None, api=self.api)[self.api]
+            data_set = data_set["data"]
+        except JSONDecodeError as e:
+            logging.error(f"JSONDecodeError: {self.api} \n{e}")
+            return None
+        except Exception as e:
+            logging.error(f"Unknown getting: {self.api} \n{e}")
+            return None
+
+        # Add the data to the model
+        for event in data_set:
+            try:
+                obj, created = self.model.objects.get_or_create(zp_id=event["zid"])
+                if created:
+                    logging.info(f"Created new {self.model} for zp_id: {event['zid']}")
+                    obj.event = event
+                    obj.zp_id = event["zid"]
+                    obj.save()
+                else:
+                    logging.info(f"Already have {self.model} for zp_id: {event['zid']}")
+            except Exception as e:
+                logging.error(f"Unknown creating: {self.api} \n{e}")
+
+
+#############################################################
+#### Inter table data migrations and Table field updates ####
+#############################################################
 
 
 class ProfilesFromTeams:
@@ -214,12 +286,15 @@ class ProfilesFromTeams:
             logging.info(f"Adding profiles from team: {team.zp_id}")
             for rider in team.team_riders:
                 logging.info(f"Get or creat zp Profile: {rider['zwid']}")
-                got, created = Profile.objects.get_or_create(zp_id=int(rider["zwid"]))
+                obj, created = Profile.objects.get_or_create(zp_id=int(rider["zwid"]))
                 logging.info(f"Created? {created} rider Profile{rider['zwid']}")
 
 
 class ResultsFromProfiles:
-    """See also management command"""
+    """
+    Migrate results from profiles to Results Table
+    See also management command
+    """
 
     def update(self, days=60):
         logging.info("Move results from profiles to results table")
@@ -238,7 +313,7 @@ class ResultsFromProfiles:
                         obj, created = Results.objects.get_or_create(
                             zp_id=int(result["zid"]), zwid=profile.zp_id, defaults={"event_date": event_date}
                         )
-                        if created:
+                        if created or not obj.tid:
                             logging.info(f"Created new result: (zid, zwid): {result['zid']}, {result['zwid']}")
                             obj.team = result.get("tname", "")
                             obj.tid = result.get("tid", "")
@@ -275,10 +350,32 @@ class ResultsFromProfiles:
                         logging.error(f"result:\n {data}")
 
 
+class SetLastEventProfile:
+    """
+    Some profiles are very inactive so we want to update the profile less often.
+    There is a Profile model prperty but it is faster if we set a filed that is the num,ber of days since last event.
+    Then we can update less often.
+    """
+
+    def update(self):
+        logging.info("Set days since last event")
+        zp_profiles = Profile.objects.all()
+        for profile in zp_profiles:
+            if profile.profile:
+                try:
+                    profile.status["last_event"] = (
+                        date.today() - datetime.fromtimestamp(profile.profile[0]["event_date"]).date()
+                    ).days
+                    profile.save()
+                except Exception as e:
+                    logging.warning(f"Failed to set last event: {e}")
+                    continue
+
+
 def sort_json_event_date():
     """See also management command"""
     logging.info("Sort the profile json field")
-    profiles = Profile.objects.all()
+    profiles = Profile.objects.filter(status__sorted=False)
     for p in profiles:
         try:
             if not p.profile:
@@ -287,7 +384,77 @@ def sort_json_event_date():
                 logging.warning(f"not a valid profile: {p.zp_id}")
                 continue
             p.profile = sorted(p.profile, key=lambda x: int(x.get("event_date", 0)), reverse=True)
+            p.status["sorted"] = True
             p.save()
         except Exception as e:
             logging.warning(f" issues with: {p.zp_id}\n {e}")
             continue
+
+
+class FetchResults:
+    def __init__(self):
+        self.zps = ZPSession()
+        self.try_count = 0
+        self.api_view = "event_results_view"
+        self.api_zwift = "event_results_zwift"
+        self.api_history = "event_race_history"
+        self.model = Results
+
+    def fetch(self):
+        """
+        Create events from results
+        """
+        logging.info("Create or update results")
+        # These are the results that need updating
+        result_zp_ids = (
+            Results.objects.filter(Q(zp_view__isnull=True) | Q(zp_zwift__isnull=True) | Q(race_history__isnull=True))
+            .values_list("zp_id", flat=True)
+            .distinct()
+        )
+        # AllResults missing history data whiich has the date.
+        all_results_zp_ids = (
+            AllResults.objects.filter(race_history__isnull=False).values_list("zp_id", flat=True).distinct()
+        )
+        try:
+            history = self.zps.get_api(id=None, api=self.api_history)[self.api_history]["data"]
+            history_zp_ids = {row["zid"] for row in history}
+            history = {row["zid"]: row for row in history}
+        except Exception as e:
+            logging.error(f"Failed to get history:\n{e}")
+            raise
+        # first lets get all the uknown events.from the history
+        unknown_events = history_zp_ids - set(all_results_zp_ids)
+        logging.info(f"history_zp_ids, - all_results_zp_ids: {len(history_zp_ids)} - {len(all_results_zp_ids)}")
+        for zp_id in history_zp_ids:
+            obj, created = AllResults.objects.get_or_create(zp_id=zp_id)
+            obj.event_date = datetime.fromtimestamp(history[zp_id]["tm"]).date()
+            obj.race_history = history[zp_id]
+            obj.save()
+
+        # Now we have made all unkown events we can get the results (view and zwift).
+        # We need to get the results for all the events that are missing data.
+        all_results_missing_data_zp_ids = AllResults.objects.filter(
+            (Q(view__isnull=True) | Q(zwift__isnull=True)) & Q(event_date__gte=date.today() - timedelta(days=365))
+        )
+        errors = 0
+        for count, result in enumerate(all_results_missing_data_zp_ids):
+            if errors >= 4 or count >= 100:
+                break
+            if result.view is None:
+                try:
+                    data_view = self.zps.get_api(id=result.zp_id, api=self.api_view)[self.api_view]["data"]
+                    result.view = data_view
+                    errors = 0
+                except Exception as e:
+                    logging.warning(f"Failed to get view data: {result.zp_id}\n {e}")
+                    errors += 1
+            if result.zwift is None:
+                try:
+                    data_zwift = self.zps.get_api(id=result.zp_id, api=self.api_zwift)[self.api_zwift]["data"]
+                    result.zwift = data_zwift
+                    errors = 0
+                except Exception as e:
+                    logging.warning(f"Failed to get zwift data: {result.zp_id}\n {e}")
+                    errors += 1
+            result.save()
+            time.sleep(5 + self.try_count * 5)

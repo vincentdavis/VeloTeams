@@ -7,8 +7,6 @@ from .models import (
     EventResultsView,
     EventResultsZwift,
     Profile,
-    ProfileSignups,
-    ProfileVictims,
     Results,
     TeamPending,
     TeamResults,
@@ -75,29 +73,15 @@ class TeamResultsAdmin(admin.ModelAdmin):
 @admin.register(Profile)
 class ProfileAdmin(admin.ModelAdmin):
     list_per_page = 100
-    list_display = ["id", "zp_id", "name", "team", "last_event", "url", "error", "modified_at", "created_at"]
+    list_display = ["id", "zp_id", "name", "team", "status", "last_event", "url", "error", "modified_at", "created_at"]
     list_filter = ["error", "modified_at", "created_at"]
     search_fields = ["zp_id"]
     actions = [update_selected_profiles, profiles_to_csv]
 
 
-@admin.register(ProfileVictims)
-class ProfileVictimsAdmin(admin.ModelAdmin):
-    list_display = ["id", "zp_id", "error", "modified_at", "created_at"]
-    list_filter = ["error", "modified_at", "created_at"]
-    search_fields = ["zp_id"]
-
-
-@admin.register(ProfileSignups)
-class ProfileSignupsAdmin(admin.ModelAdmin):
-    list_display = ["id", "zp_id", "error", "modified_at", "created_at"]
-    list_filter = ["error", "modified_at", "created_at"]
-    search_fields = ["zp_id"]
-
-
 @admin.register(AllResults)
 class AllResultsAdmin(admin.ModelAdmin):
-    list_display = ["id", "modified_at", "created_at"]
+    list_display = ["id", "zp_id", "modified_at", "created_at"]
     list_filter = ["modified_at", "created_at"]
 
 
