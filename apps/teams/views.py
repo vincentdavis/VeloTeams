@@ -1,11 +1,14 @@
+import pandas as pd
 from django import forms
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.paginator import Paginator
 from django.db import IntegrityError, transaction
-from django.db.models import Q
-from django.http import JsonResponse
+from django.db.models import F, Q
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
+from django.views import View
 from django.views.generic import (
     CreateView,
     DetailView,
@@ -17,7 +20,7 @@ from django.views.generic import (
 )
 from django.views.generic.edit import FormView
 
-from apps.zp.models import TeamRiders
+from apps.zp.models import Profile, TeamRiders
 
 from .forms import TeamForm
 from .models import Team, TeamMember
@@ -46,10 +49,7 @@ class TeamListViewCreate(View):
 
     def _is_ajax(self, request):
         """Helper function to determine if request is AJAX."""
-        return (
-            "HTTP_X_REQUESTED_WITH" in request.META
-            and request.META["HTTP_X_REQUESTED_WITH"] == "XMLHttpRequest"
-        )
+        return "HTTP_X_REQUESTED_WITH" in request.META and request.META["HTTP_X_REQUESTED_WITH"] == "XMLHttpRequest"
 
     def _handle_ajax_request(self, form):
         """Handle AJAX form submission."""
@@ -120,9 +120,7 @@ class JoinTeamView(LoginRequiredMixin, FormView):
             team_member.team.add(team)
             messages.success(self.request, "Successfully joined the team!")
         except IntegrityError:
-            messages.error(
-                self.request, "There was an error joining the team. Please try again."
-            )
+            messages.error(self.request, "There was an error joining the team. Please try again.")
             return super().form_invalid(form)
 
         return super().form_valid(form)
@@ -161,9 +159,144 @@ class TeamProfileView(DetailView):
     template_name = "team_profile.html"
     context_object_name = "team"
 
+    def get_object(self, queryset=None):
+        """
+        Returns the object the view is displaying.
+        Override this method to use 'custom_field' for lookup instead of 'pk'.
+        """
+        if queryset is None:
+            queryset = self.get_queryset()
+
+        # Get the 'custom_field' value from the URL.
+        custom_field = self.kwargs.get("zp_id")
+
+        # Perform the lookup filtering.
+        if custom_field is not None:
+            queryset = queryset.filter(zp_id=custom_field)
+
+        # Ensure  get one object, and raise a 404 if not found.
+        try:
+            # Get the single item from the filtered queryset
+            obj = queryset.get()
+        except queryset.model.DoesNotExist:
+            raise Http404(
+                _("No %(verbose_name)s found matching the query") % {"verbose_name": queryset.model._meta.verbose_name}
+            )
+        return obj
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        team_riders, created = TeamRiders.objects.get_or_create(zp_id=self.object.zp_id)
+        try:
+            team_riders, created = TeamRiders.objects.get_or_create(
+                zp_id=self.object.zp_id,
+            )
+            context["team_members"] = team_riders.team_riders
+        except Exception:
+            pass
 
-        context["team_members"] = team_riders.team_riders
         return context
+
+
+class TeamAuditReportView(View):
+    def get_report_data(self, team_id, search=None, sort=None, page=1):
+        """
+        Fetches report data based on team_id, with optional search, sort, and pagination.
+
+        :param team_id: ID of the team.
+        :param search: Optional search term for filtering by team name.
+        :param sort: Optional sort order.
+        :param page: Page number for pagination.
+        :return: A page of sorted and/or filtered report data.
+        """
+        try:
+            team_riders = TeamRiders.objects.filter(zp_id=team_id).latest("modified_at")
+        except TeamRiders.DoesNotExist:
+            # Handle the case where no team riders are found
+            return render(request, "error.html", {"message": "Team not found"})
+
+        # Extract profile zwids
+        profile_ids = [rider.get("zwid") for rider in team_riders.team_riders if rider.get("zwid")]
+
+        # Fetch corresponding profiles
+        queryset = Profile.objects.filter(zp_id__in=profile_ids)
+
+        # Annotate to extract the 'name' from the first element of the JSON array
+        queryset = queryset.annotate(
+            profile__name=F("profile__0__name"),
+            profile__tname=F("profile__0__tname"),
+        )
+
+        if search:
+            queryset = queryset.filter(profile__icontains=search)
+        if sort:
+            queryset = queryset.order_by(sort)
+
+        paginator = Paginator(queryset, 10)  # 10 profiles per page
+        return paginator.get_page(page), None
+
+    def get_report_dataframe(self, team_id):
+        # Fetch the latest team riders
+        try:
+            print(team_id)
+            team_riders = TeamRiders.objects.filter(zp_id=team_id).latest("modified_at")
+        except TeamRiders.DoesNotExist:
+            # Handle the case where no team riders are found
+            return render(request, "error.html", {"message": "Team not found"})
+
+        # Extract profile zwids
+        profile_ids = [rider.get("zwid") for rider in team_riders.team_riders if rider.get("zwid")]
+        # Fetch corresponding profiles
+        profiles = Profile.objects.filter(zp_id__in=profile_ids)
+
+        # Prepare data for report
+        report_data = []
+        for profile in profiles:
+            profile_data = profile.profile
+            try:
+                current_team_name = profile.team
+                report_row = {
+                    "name": profile.name,
+                    "team": current_team_name,
+                    "other_team_date": profile.other_team_date,
+                    "url": profile.url,
+                    "last_event": profile.last_event,
+                    "modified_date": profile.modified_at,
+                    "errors": profile_data[0].get("errors", ""),
+                }
+                report_data.append(report_row)
+            except Exception as e:
+                print(e)
+                continue
+
+        return pd.DataFrame(report_data), None
+
+    def get(self, request, team_id):
+        search = request.GET.get("search", "")
+        sort = request.GET.get("sort", "")
+        page = request.GET.get("page", 1)
+        report_data, error = self.get_report_data(team_id, search=search, sort=sort, page=page)
+        if error:
+            return render(request, "error.html", {"message": error})
+
+        context = {"report_data": report_data, "search": search, "sort": sort}
+        return render(request, "team_audit_report.html", context)
+
+    def post(self, request, team_id):
+        action = request.POST.get("action", "")
+
+        if action == "export":
+            df, error = self.get_report_dataframe(team_id)
+            if error:
+                return render(request, "error.html", {"message": error})
+
+            # Convert report data to a Pandas DataFrame
+            # df = pd.DataFrame(report_data)
+
+            # Create a CSV response
+            response = HttpResponse(content_type="text/csv")
+            response["Content-Disposition"] = f'attachment; filename="team_audit_report_{team_id}.csv"'
+
+            # Use Pandas to write the DataFrame to CSV format
+            df.to_csv(path_or_buf=response, index=False)
+
+            return response

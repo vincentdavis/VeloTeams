@@ -33,6 +33,8 @@ jobs:
         echo "MAILGUN_DOMAIN=${{ secrets.MAILGUN_DOMAIN }}" >> .django
         echo "SENTRY_DSN=${{ secrets.SENTRY_DSN }}" >> .django
         echo "WEB_CONCURRENCY=4" >> .django
+        echo "ZP_USERNAME=${{ secrets.ZP_USERNAME }}" >> .django
+        echo "ZP_PASSWORD=${{ secrets.ZP_PASSWORD }}" >> .django
 
         echo "POSTGRES_HOST=${{ secrets.POSTGRES_HOST }}" >> .postgres
         echo "POSTGRES_PORT=${{ secrets.POSTGRES_PORT }}" >> .postgres

@@ -9,10 +9,12 @@ from django.views.generic import TemplateView
 
 
 class HomePageView(LoginRequiredMixin, TemplateView):
-    template_name = 'pages/home.html'
+    template_name = "pages/home.html"
+
 
 def trigger_error(request):
     pass
+
 
 urlpatterns = [
     path("", HomePageView.as_view(), name="home"),
@@ -22,10 +24,11 @@ urlpatterns = [
     # User management
     path("users/", include("veloteams.users.urls", namespace="users")),
     path("", include("apps.teams.urls")),
+    path("", include("apps.zp.urls")),
     path("accounts/", include("allauth.urls")),
     # Your stuff: custom urls includes go here
-    path('sentry-debug/', trigger_error),
-    ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    path("sentry-debug/", trigger_error),
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 if settings.DEBUG:
     # Static file serving when using Gunicorn + Uvicorn for local web socket development
     urlpatterns += staticfiles_urlpatterns()
@@ -40,7 +43,6 @@ if settings.DEBUG:
             default_views.bad_request,
             kwargs={"exception": Exception("Bad Request!")},
         ),
-
         path(
             "403/",
             default_views.permission_denied,
