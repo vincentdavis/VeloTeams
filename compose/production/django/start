@@ -7,17 +7,17 @@ set -o nounset
 
 python /app/manage.py collectstatic --noinput
 
-# Run database migrations and handle any exceptions
-set +o errexit  # Disable immediate exit so we can handle errors
-python /app/manage.py migrate
-migration_status=$?  # Capture the exit status of the migrate command
+# # Run database migrations and handle any exceptions
+# set +o errexit  # Disable immediate exit so we can handle errors
+# python /app/manage.py migrate
+# migration_status=$?  # Capture the exit status of the migrate command
 
-if [ $migration_status -ne 0 ]; then
-    echo "Migration failed with status $migration_status"
-    # Exit with the migration command's exit status to propagate the error
-    exit $migration_status
-fi
-set -o errexit  # Re-enable immediate exit
+# if [ $migration_status -ne 0 ]; then
+#     echo "Migration failed with status $migration_status"
+#     # Exit with the migration command's exit status to propagate the error
+#     exit $migration_status
+# fi
+# set -o errexit  # Re-enable immediate exit
 
 # Start Gunicorn server
 exec /usr/local/bin/gunicorn config.wsgi --bind 0.0.0.0:5000 --chdir=/app
