@@ -25,6 +25,7 @@ urlpatterns = [
     path("users/", include("veloteams.users.urls", namespace="users")),
     path("", include("apps.teams.urls")),
     path("", include("apps.zp.urls")),
+    path("", include("apps.chat.urls")),
     path("accounts/", include("allauth.urls")),
     # Your stuff: custom urls includes go here
     path("sentry-debug/", trigger_error),

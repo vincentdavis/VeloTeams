@@ -1,0 +1,57 @@
+{% extends 'base_landing.html' %}
+{% load static %}
+{% block main %}
+
+    <div class="container mx-auto px-4 py-6">
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h2 class="text-xl font-bold mb-2">Chat Room: {{ room_name }}</h2>
+            <div id="chat-log" class="overflow-y-scroll h-96">
+                <!-- Messages will be appended here -->
+            </div>
+            <textarea id="chat-message-input" class="border rounded-lg px-4 py-2 w-full" placeholder="Type a message..."></textarea>
+            <button id="chat-message-submit" class="mt-2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                Send
+            </button>
+        </div>
+    </div>
+
+    <!-- Pass room_name to JavaScript -->
+    <script type="text/javascript">
+        const roomName = "{{ room_name }}";
+    </script>
+
+    <script type="text/javascript">
+        const chatSocket = new WebSocket(
+            'ws://' + window.location.host + '/ws/chat/' + roomName + '/'
+        );
+
+        chatSocket.onmessage = function(e) {
+            const data = JSON.parse(e.data);
+            console.log(data)
+            const chatLog = document.querySelector('#chat-log');
+        
+            const messageElement = document.createElement('div');
+            messageElement.innerHTML = `<strong>${data.username}:</strong> ${data.message}`;
+            chatLog.appendChild(messageElement);
+        };
+
+        chatSocket.onclose = function(e) {
+            console.error('Chat socket closed unexpectedly');
+        };
+
+        document.querySelector('#chat-message-submit').onclick = function(e) {
+            const messageInput = document.querySelector('#chat-message-input');
+            const message = messageInput.value;
+            chatSocket.send(JSON.stringify({ 'message': message }));
+            messageInput.value = '';
+        };
+
+        document.querySelector('#chat-message-input').onkeypress = function(e) {
+            if (e.keyCode === 13 && !e.shiftKey) {  // Enter key, without shift
+                document.querySelector('#chat-message-submit').click();
+                e.preventDefault();  // Prevent newline
+            }
+        };
+    </script>
+
+    {% endblock %}

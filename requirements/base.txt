@@ -2,7 +2,7 @@
 #------------------------------------------------------------------------------
 pip==23.3.2
 requests==2.31.0
-requests-html @ git+https://github.com/psf/requests-html.git # https://github.com/psf/requests-html
+requests-html  # https://github.com/psf/requests-html
 python-slugify==8.0.1  # https://github.com/un33k/python-slugify
 Pillow==10.1.0  # https://github.com/python-pillow/Pillow
 argon2-cffi==23.1.0  # https://github.com/hynek/argon2_cffi
@@ -11,8 +11,9 @@ redis==5.0.1  # https://github.com/redis/redis-py
 hiredis==2.3.2  # https://github.com/redis/hiredis-py
 uvicorn[standard]==0.27.0.post1  # https://github.com/encode/uvicorn
 celery==5.3.6  # pyup: < 6.0  # https://github.com/celery/celery
-django-celery-beat==2.5.0 # https://github.com/celery/django-celery-beat
-
+django-celery-beat==2.6.0 # https://github.com/celery/django-celery-beat
+channels==4.0.0
+channels-redis==4.2.0
 # data stuff
 # ------------------------------------------------------------------------------
 pandas==2.1.4
