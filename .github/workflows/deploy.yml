@@ -52,7 +52,7 @@ jobs:
       run: |
         echo "${{ secrets.SERVER_SSH_KEY }}" > deploy_key
         chmod 600 deploy_key
-
+        
         # Create necessary directories on the remote server
         ssh -i deploy_key root@${{ secrets.SERVER_HOST }} "mkdir -p /home/.envs/.production/;"
 
@@ -61,6 +61,8 @@ jobs:
         scp -i deploy_key .postgres root@${{ secrets.SERVER_HOST }}:/home/.envs/.production/
 
         ssh -i deploy_key root@${{ secrets.SERVER_HOST }} <<'ENDSSH'
+          ls
+          pwd
           sudo rm -rf /home/VeloTeams  # Removes the existing directory
           sudo mkdir /home/VeloTeams  # Creates the directory again
           sudo chown $(whoami):$(whoami) /home/VeloTeams  # Sets the ownership to the current user
