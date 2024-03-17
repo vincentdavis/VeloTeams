@@ -61,7 +61,9 @@ jobs:
         scp -i deploy_key .postgres root@${{ secrets.SERVER_HOST }}:/home/.envs/.production/
 
         ssh -i deploy_key root@${{ secrets.SERVER_HOST }} <<'ENDSSH'
-          rm -rf /home/VeloTeams  # Caution: This removes the existing directory
+          sudo rm -rf /home/VeloTeams  # Removes the existing directory
+          sudo mkdir /home/VeloTeams  # Creates the directory again
+          sudo chown $(whoami):$(whoami) /home/VeloTeams  # Sets the ownership to the current user
           git clone https://github.com/karthicksakkaravarti/VeloTeams.git -b KARTHICK /home/VeloTeams
           cd /home/VeloTeams
           cp -rf ../.envs .
